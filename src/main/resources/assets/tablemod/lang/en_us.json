@@ -1,0 +1,17 @@
+{
+  "item.tablemod.ruby": "Ruby",
+  "item.tablemod.raw_ruby": "Raw Ruby",
+
+  "item.tablemod.ruby_staff": "Ruby Staff",
+
+  "item.tablemod.metal_detector": "Metal Detector",
+
+  "block.tablemod.ruby_block": "Block of Ruby",
+  "block.tablemod.ruby_ore": "Block of Ruby Ore",
+  "block.tablemod.sound_block": "Sound Block",
+
+  "creativetab.tablemod_tab": "Ruby TableMod Tab",
+
+  "tooltip.tablemod.metal_detector.tooltip": "Test changement tag"
+
+}

@@ -1,0 +1,5 @@
+// 1.20.1	2025-11-10T16:59:03.4588632	Loot Tables
+06e1b5a2fd30f57c928bf41d96576798c077823f data/tablemod/loot_tables/blocks/ruby_block.json
+ba32094b1e08de1bc15ba980723094a6051f7ecd data/tablemod/loot_tables/blocks/ruby_ore.json
+c621aa925aeec0ee0d61a86dba1d1263b975c644 data/tablemod/loot_tables/blocks/ruby_ore_drop.json
+bda686fcd8d7a1fee5020a1eefa84d16fa6637f6 data/tablemod/loot_tables/blocks/sound_block.json

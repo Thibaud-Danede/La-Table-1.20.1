@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tablemod:block/sound_block"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+// 1.20.1	2025-11-10T16:59:03.4598555	Tags for minecraft:block mod id tablemod
+0413890856156381fabeaaa9a821cf1a7cd6a827 data/minecraft/tags/blocks/mineable/pickaxe.json
+447d876971bf2db5e7c6165cbd06b5c14a82d93a data/minecraft/tags/blocks/needs_iron_tool.json
+655f84ffbe241738d15834e957bc1d8de6aa424d data/tablemod/tags/blocks/metal_detector_valuables.json
