@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,13 +36,13 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        return this.defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
     }
 
     @Nullable
@@ -69,4 +70,10 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
                 : createTickerHelper(type, ModBlockEntities.ALCHEMY_TABLE_BE.get(),
                 (lvl, pos, st, be) -> AlchemyTableBlockEntity.tick(lvl, pos, st, (AlchemyTableBlockEntity) be));
     }
+
+    @Override
+    public net.minecraft.world.level.block.RenderShape getRenderShape(net.minecraft.world.level.block.state.BlockState state) {
+        return net.minecraft.world.level.block.RenderShape.MODEL;
+    }
+
 }
