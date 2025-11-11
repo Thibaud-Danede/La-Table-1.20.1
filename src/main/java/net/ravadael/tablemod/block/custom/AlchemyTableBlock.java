@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
+import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
@@ -60,7 +61,8 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return null;
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new AlchemyTableBlockEntity(pos, state);
     }
+
 }

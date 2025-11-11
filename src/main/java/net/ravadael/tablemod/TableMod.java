@@ -8,9 +8,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.ravadael.tablemod.block.ModBlocks;
+import net.ravadael.tablemod.block.entity.ModBlockEntities;
 import net.ravadael.tablemod.item.ModCreativeModTabs;
 import net.ravadael.tablemod.item.ModItems;
 import org.slf4j.Logger;
+import net.ravadael.tablemod.menu.ModMenuTypes;
 
 @Mod(TableMod.MOD_ID)
 public class TableMod {
@@ -29,7 +31,11 @@ public class TableMod {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
 
+        ModBlockEntities.BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
+
+
         MinecraftForge.EVENT_BUS.register(this);
+        ModMenuTypes.MENU_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
