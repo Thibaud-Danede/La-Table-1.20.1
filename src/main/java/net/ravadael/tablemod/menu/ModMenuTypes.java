@@ -13,5 +13,11 @@ public class ModMenuTypes {
             DeferredRegister.create(ForgeRegistries.MENU_TYPES, TableMod.MOD_ID);
 
     public static final RegistryObject<MenuType<AlchemyTableMenu>> ALCHEMY_TABLE_MENU =
-            MENU_TYPES.register("alchemy_table_menu", () -> IForgeMenuType.create(AlchemyTableMenu::new));
+            MENU_TYPES.register("alchemy_table_menu", () ->
+                    IForgeMenuType.create((windowId, inv, buf) ->
+                            new AlchemyTableMenu(windowId, inv, buf)
+                    )
+            );
+
+
 }

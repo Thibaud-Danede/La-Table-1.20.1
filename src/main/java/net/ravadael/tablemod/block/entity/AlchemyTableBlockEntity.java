@@ -69,10 +69,6 @@ public class AlchemyTableBlockEntity extends BlockEntity implements MenuProvider
         setChanged();
     }
 
-    @Override
-    public boolean stillValid(Player pPlayer) {
-        return false;
-    }
 
     public @NotNull ItemStack removeItem(int slot, int count) {
         ItemStack result = ContainerHelper.removeItem(items, slot, count);
@@ -101,4 +97,16 @@ public class AlchemyTableBlockEntity extends BlockEntity implements MenuProvider
         return ContainerHelper.takeItem(items, slot);
     }
 
+    public boolean canPlaceItem(int index, ItemStack stack) {
+        if (index == 0) return stack.is(Items.OAK_PLANKS);
+        if (index == 1) return stack.is(Items.GLOWSTONE_DUST);
+        return false; // Slot 2 is output only
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return this.getLevel() != null &&
+                this.getLevel().getBlockEntity(this.getBlockPos()) == this &&
+                player.distanceToSqr(this.getBlockPos().getCenter()) <= 64.0D;
+    }
 }

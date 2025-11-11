@@ -1,43 +1,48 @@
-
 package net.ravadael.tablemod.menu.slot;
 
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
 
 public class ResultSlot extends Slot {
-    private final Player player;
     private final AlchemyTableBlockEntity blockEntity;
 
-    public ResultSlot(Player player, AlchemyTableBlockEntity blockEntity, int index, int x, int y) {
-        super(blockEntity, index, x, y);
-        this.player = player;
+    public ResultSlot(Container container, AlchemyTableBlockEntity blockEntity, int index, int x, int y) {
+        super(container, index, x, y);
         this.blockEntity = blockEntity;
     }
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    public boolean mayPickup(Player player) {
-        return !this.getItem().isEmpty();
+        return false; // slot d’output
     }
 
     @Override
     public void onTake(Player player, ItemStack stack) {
-        ItemStack input = blockEntity.getItem(0);
-        ItemStack fuel = blockEntity.getItem(1);
+        // Côté serveur uniquement
+        if (!player.level().isClientSide) {
+            // Consomme 1 input et 1 fuel (adapte si tes coûts diffèrent)
+            blockEntity.removeItem(0, 1);
+            blockEntity.removeItem(1, 1);
 
-        if (!input.isEmpty() && input.getCount() > 0 && !fuel.isEmpty() && fuel.getCount() > 0) {
-            input.shrink(1);
-            fuel.shrink(1);
+            // Recalculer les recettes dispos + reposer le bon output
+            if (player.containerMenu instanceof net.ravadael.tablemod.menu.AlchemyTableMenu m) {
+                // Regénère ta liste (via slotsChanged) et réapplique l’index courant
+                m.slotsChanged(blockEntity); // déclenche updateAvailableRecipes() + selectRecipe(...)
+            }
+
+            blockEntity.setChanged();
         }
 
-        this.set(ItemStack.EMPTY);
-        blockEntity.setChanged();
+        super.onTake(player, stack);
     }
 
+    @Override
+    public boolean mayPickup(Player player) {
+        // pickup seulement si un item réel est présent
+        return !this.getItem().isEmpty();
+    }
 }
+
