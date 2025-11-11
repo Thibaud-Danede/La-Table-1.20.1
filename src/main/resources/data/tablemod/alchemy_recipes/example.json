@@ -1,8 +1,0 @@
-{
-  "type": "tablemod:transmute",
-  "input":   { "item": "minecraft:amethyst_shard" },
-  "catalyst":{ "item": "minecraft:glowstone_dust" },
-  "result":  { "item": "minecraft:diamond", "count": 1 },
-  "time": 200,
-  "experience": 0.0
-}

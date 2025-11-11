@@ -62,18 +62,4 @@ public class TableMod {
         // hooks serveur si besoin
     }
 
-    /*@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event) {
-            event.enqueueWork(() -> {
-                // Register the GUI screen for the menu
-                MenuScreens.register(ModMenus.ALCHEMY_TABLE_MENU.get(), AlchemyTableScreen::new);
-
-                // 👇 Add this to fix invisibility due to rendering layer
-                ItemBlockRenderTypes.setRenderLayer(ModBlocks.ALCHEMY_TABLE.get(), RenderType.cutout());
-            });
-        }
-    }*/
-
 }

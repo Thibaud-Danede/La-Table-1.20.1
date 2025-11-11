@@ -12,7 +12,7 @@ public class ModBlockEntities {
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, TableMod.MOD_ID);
 
     public static final RegistryObject<BlockEntityType<AlchemyTableBlockEntity>> ALCHEMY_TABLE_BE =
-            BLOCK_ENTITIES.register("alchemy_table",
-                    () -> BlockEntityType.Builder.of(AlchemyTableBlockEntity::new,
-                            ModBlocks.ALCHEMY_TABLE.get()).build(null));
+            BLOCK_ENTITIES.register("alchemy_table", () ->
+                    BlockEntityType.Builder.of(AlchemyTableBlockEntity::new, ModBlocks.ALCHEMY_TABLE.get()).build(null));
+
 }

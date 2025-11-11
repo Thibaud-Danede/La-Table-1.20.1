@@ -54,14 +54,17 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide && player instanceof ServerPlayer sp) {
+        if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MenuProvider provider) {
-                NetworkHooks.openScreen(sp, provider, pos);
+                NetworkHooks.openScreen((ServerPlayer) player, provider, pos);
+            } else {
+                throw new IllegalStateException("Missing container provider for Alchemy Table!");
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
+
 
     @Nullable
     @Override

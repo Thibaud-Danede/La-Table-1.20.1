@@ -15,11 +15,11 @@ public class ModRecipeTypes {
     public static final DeferredRegister<RecipeType<?>> TYPES =
             DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, TableMod.MOD_ID);
 
-    public static final RegistryObject<RecipeSerializer<TransmuteRecipe>> TRANSMUTE_SERIALIZER =
-            SERIALIZERS.register("transmute", TransmuteRecipe.Serializer::new);
+    public static final RegistryObject<RecipeSerializer<AlchemyRecipe>> ALCHEMY_SERIALIZER =
+            SERIALIZERS.register("alchemy", AlchemyRecipe.Serializer::new);
 
-    public static final RegistryObject<RecipeType<TransmuteRecipe>> TRANSMUTE_TYPE =
-            TYPES.register("transmute", () -> new RecipeType<>() {
-                public String toString() { return TableMod.MOD_ID + ":transmute"; }
+    public static final RegistryObject<RecipeType<AlchemyRecipe>> ALCHEMY_TYPE =
+            TYPES.register("alchemy", () -> new RecipeType<>() {
+                public String toString() { return TableMod.MOD_ID + ":alchemy"; }
             });
 }
