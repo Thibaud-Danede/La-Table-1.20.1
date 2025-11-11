@@ -1,13 +1,10 @@
 {
   "type": "tablemod:alchemy",
   "input": {
-    "item": "minecraft:oak_planks"
+    "tag": "minecraft:planks"
   },
   "catalyst": {
     "item": "minecraft:glowstone_dust"
   },
-  "result": {
-    "item": "minecraft:stick",
-    "count": 4
-  }
+  "dynamic_outputs": true
 }

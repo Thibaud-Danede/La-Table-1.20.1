@@ -92,11 +92,38 @@ public class AlchemyTableBlockEntity extends BlockEntity implements MenuProvider
         container.setItem(0, input);
         container.setItem(1, cost);
 
-        matchingRecipes = level.getRecipeManager()
-                .getAllRecipesFor(ModRecipeTypes.ALCHEMY_TYPE.get())
-                .stream()
-                .filter(r -> r.matchesStacks(input, cost))
-                .toList();
+        matchingRecipes = new ArrayList<>();
+
+        for (AlchemyRecipe recipe : level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.ALCHEMY_TYPE.get())) {
+            if (recipe.matchesStacks(input, cost)) {
+                if (recipe.getId().getPath().contains("planks") && recipe.getType() == ModRecipeTypes.ALCHEMY_TYPE.get()) {
+                    List<ItemStack> outputs = recipe.getDynamicResults(input, level);
+                    //Debug
+                    List<ItemStack> results = recipe.getDynamicResults(input, level);
+                    System.out.println("[Alchemy DEBUG] Dynamic results: " + results.size());
+
+                    for (ItemStack stack : outputs) {
+                        matchingRecipes.add(new AlchemyRecipe(
+                                recipe.getId(),
+                                recipe.getInput(),
+                                recipe.getCatalyst(),
+                                List.of(stack),
+                                false
+                        ));
+                    }
+                } else {
+                    matchingRecipes.add(recipe);
+                }
+            }
+            //Debug
+            System.out.println("[Alchemy DEBUG] Found recipe: " + recipe.getId());
+
+            if (recipe.matchesStacks(input, cost)) {
+                System.out.println("[Alchemy DEBUG] Recipe matches!");
+            }
+
+        }
+
 
         // Reset selection when input changes
         selectedRecipeIndex = -1;
@@ -114,4 +141,19 @@ public class AlchemyTableBlockEntity extends BlockEntity implements MenuProvider
     public List<AlchemyRecipe> getMatchingRecipes() {
         return matchingRecipes;
     }
+
+    public void onTakeOutput() {
+        if (level == null || level.isClientSide || selectedRecipeIndex == -1) return;
+
+        ItemStack input = itemHandler.getStackInSlot(0);
+        ItemStack cost = itemHandler.getStackInSlot(1);
+
+        AlchemyRecipe selected = matchingRecipes.get(selectedRecipeIndex);
+        if (selected.matchesStacks(input, cost)) {
+            itemHandler.extractItem(0, 1, false);
+            itemHandler.extractItem(1, 1, false);
+            updateMatchingRecipes();  // Re-check available options after taking output
+        }
+    }
+
 }

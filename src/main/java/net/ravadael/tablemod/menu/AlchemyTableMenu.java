@@ -49,13 +49,19 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(ModTags.Items.ALCHEMY_FUEL);
             }
-        }); // Fuel / Cost
+        });
         this.addSlot(new SlotItemHandler(itemHandler, 2, 143, 33) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
             }
-        }); // Output
+
+            @Override
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                blockEntity.onTakeOutput();
+            }
+        });
 
         // Player inventory
         for (int row = 0; row < 3; ++row) {
@@ -92,6 +98,11 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             blockEntity.selectRecipe(index);
         }
     }
+
+    public List<AlchemyRecipe> getAvailableRecipes() {
+        return this.availableRecipes;
+    }
+
 
 
 }
