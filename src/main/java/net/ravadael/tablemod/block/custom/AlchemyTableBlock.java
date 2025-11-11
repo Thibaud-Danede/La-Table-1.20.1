@@ -14,16 +14,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
-import net.ravadael.tablemod.block.entity.ModBlockEntities;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
 
@@ -45,12 +40,6 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
         return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
     }
 
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new AlchemyTableBlockEntity(pos, state);
-    }
-
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
@@ -65,18 +54,13 @@ public class AlchemyTableBlock extends BaseEntityBlock implements EntityBlock {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null
-                : createTickerHelper(type, ModBlockEntities.ALCHEMY_TABLE_BE.get(),
-                (lvl, pos, st, be) -> AlchemyTableBlockEntity.tick(lvl, pos, st, (AlchemyTableBlockEntity) be));
-    }
-
     @Override
     public net.minecraft.world.level.block.RenderShape getRenderShape(net.minecraft.world.level.block.state.BlockState state) {
         return net.minecraft.world.level.block.RenderShape.MODEL;
     }
 
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
+        return null;
+    }
 }
