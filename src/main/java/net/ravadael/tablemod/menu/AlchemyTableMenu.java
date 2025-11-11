@@ -38,11 +38,11 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.level = inv.player.level();
 
         // Input (Plank)
-        this.addSlot(new Slot(blockEntity, 0, 20, 17));
+        this.addSlot(new Slot(blockEntity, 0, 20, 23));
         // Fuel (Glowstone)
-        this.addSlot(new Slot(blockEntity, 1, 20, 53));
+        this.addSlot(new Slot(blockEntity, 1, 20, 42));
         // Output (not used for static result, just here to mirror logic)
-        this.addSlot(new ResultSlot(inv.player, blockEntity, 2, 144, 35));
+        this.addSlot(new ResultSlot(inv.player, blockEntity, 2, 143, 32));
 
         // Player inventory
         for (int row = 0; row < 3; ++row)
@@ -106,4 +106,13 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     public AlchemyTableBlockEntity getBlockEntity() {
         return blockEntity;
     }
+
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    public int getTotalRecipeCount() {
+        return recipeResults.size();
+    }
+
 }

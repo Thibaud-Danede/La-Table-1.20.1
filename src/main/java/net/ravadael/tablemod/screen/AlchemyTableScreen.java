@@ -17,8 +17,8 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
     private static final ResourceLocation TEXTURE =
             new ResourceLocation(TableMod.MOD_ID, "textures/gui/alchemy_table.png");
 
-    private static final int BUTTON_WIDTH = 16;
-    private static final int BUTTON_HEIGHT = 16;
+    private static final int BUTTON_WIDTH = 18;
+    private static final int BUTTON_HEIGHT = 18;
     private static final int BUTTONS_PER_ROW = 3;
     private static final int BUTTONS_PER_COLUMN = 4;
     private static final int MAX_VISIBLE = BUTTONS_PER_ROW * BUTTONS_PER_COLUMN;
@@ -34,29 +34,37 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         RenderSystem.setShaderTexture(0, TEXTURE);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
-        menu.refreshRecipeList(); // update recipes if input changed
+        menu.refreshRecipeList();
 
-        // Render scroll bar
-        if (menu.canScroll()) {
-            int barX = leftPos + 119;
-            int barY = topPos + 15;
-            graphics.blit(TEXTURE, barX, barY, 176, 0, 12, 56); // track
-
-            float scrollProgress = menu.startIndex / (float)(menu.recipeResults.size() - MAX_VISIBLE);
-            int thumbY = (int)(scrollProgress * 44);
-            graphics.blit(TEXTURE, barX, barY + thumbY, 188, 0, 12, 15); // thumb
-        }
-
-        // Render recipe buttons
         List<ItemStack> visible = menu.getVisibleRecipes();
         for (int i = 0; i < visible.size(); i++) {
             int row = i / BUTTONS_PER_ROW;
             int col = i % BUTTONS_PER_ROW;
-            int x = leftPos + BUTTON_START_X + col * (BUTTON_WIDTH + 4);
-            int y = topPos + BUTTON_START_Y + row * (BUTTON_HEIGHT + 4);
-            graphics.renderItem(visible.get(i), x, y);
+            int x = leftPos + BUTTON_START_X + col * BUTTON_WIDTH;
+            int y = topPos + BUTTON_START_Y + row * BUTTON_HEIGHT;
+
+            // Draw background slot (button frame)
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+            graphics.blit(TEXTURE, x, y, 176, 72, 18, 18);
+            graphics.renderItem(visible.get(i), x + 1, y + 1);
+        }
+
+        // Draw scrollbar if needed
+        if (menu.canScroll()) {
+            int scrollbarX = leftPos + 119;
+            int scrollbarY = topPos + 15;
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            graphics.blit(TEXTURE, scrollbarX, scrollbarY, 176, 0, 12, 56); // track
+
+            float scrollProgress = menu.getTotalRecipeCount() <= MAX_VISIBLE ? 0f :
+                    menu.getStartIndex() / (float)(menu.getTotalRecipeCount() - MAX_VISIBLE);
+            int thumbY = (int)(scrollProgress * 44);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            graphics.blit(TEXTURE, scrollbarX, scrollbarY + thumbY, 188, 0, 12, 15); // thumb
         }
     }
 
@@ -72,22 +80,10 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         for (int i = 0; i < visible.size(); i++) {
             int row = i / BUTTONS_PER_ROW;
             int col = i % BUTTONS_PER_ROW;
-            int x = leftPos + BUTTON_START_X + col * (BUTTON_WIDTH + 4);
-            int y = topPos + BUTTON_START_Y + row * (BUTTON_HEIGHT + 4);
+            int x = leftPos + BUTTON_START_X + col * BUTTON_WIDTH;
+            int y = topPos + BUTTON_START_Y + row * BUTTON_HEIGHT;
             if (mouseX >= x && mouseX < x + BUTTON_WIDTH && mouseY >= y && mouseY < y + BUTTON_HEIGHT) {
-                // Set the result to slot 2
                 menu.getBlockEntity().setItem(2, visible.get(i).copy());
-                return true;
-            }
-        }
-
-        // Handle scroll wheel
-        if (menu.canScroll()) {
-            double relX = mouseX - (leftPos + 119);
-            double relY = mouseY - (topPos + 15);
-            if (relX >= 0 && relX < 12 && relY >= 0 && relY < 56) {
-                if (button == 0) menu.scrollUp();
-                else if (button == 1) menu.scrollDown();
                 return true;
             }
         }

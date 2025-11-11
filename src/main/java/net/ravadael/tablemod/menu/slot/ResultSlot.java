@@ -18,20 +18,26 @@ public class ResultSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return false; // Can't manually place items in result
+        return false;
+    }
+
+    @Override
+    public boolean mayPickup(Player player) {
+        return !this.getItem().isEmpty();
     }
 
     @Override
     public void onTake(Player player, ItemStack stack) {
-        super.onTake(player, stack);
-
         ItemStack input = blockEntity.getItem(0);
         ItemStack fuel = blockEntity.getItem(1);
 
-        if (!input.isEmpty() && !fuel.isEmpty()) {
+        if (!input.isEmpty() && input.getCount() > 0 && !fuel.isEmpty() && fuel.getCount() > 0) {
             input.shrink(1);
             fuel.shrink(1);
-            blockEntity.setChanged();
         }
+
+        this.set(ItemStack.EMPTY);
+        blockEntity.setChanged();
     }
+
 }
