@@ -40,11 +40,30 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        if (recipeList == null) return; // Skip rendering if recipe list isn't ready
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-        guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        // draw background
+        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+
+        // refresh the recipe list from the menu
+        this.recipeList = menu.getAvailableRecipes();
+
+        if (recipeList == null || recipeList.isEmpty()) return;
+
+        int offset = (int) scrollAmount * 5;
+
+        for (int i = 0; i < 15 && i + offset < recipeList.size(); i++) {
+            AlchemyRecipe recipe = recipeList.get(i + offset);
+            int row = i / 5;
+            int col = i % 5;
+            int x = leftPos + 12 + col * 18;
+            int y = topPos + 18 + row * 18;
+
+            ItemStack result = recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
+            guiGraphics.renderItem(result, x, y);
+            guiGraphics.renderItemDecorations(this.font, result, x, y);
+        }
+
+
+        // draw scrollbar
         if (recipeList.size() > 15) {
             int scrollbarHeight = 54;
             int handleHeight = 15;
@@ -53,27 +72,8 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
             guiGraphics.blit(TEXTURE, leftPos + 119, scrollY, 176, 0, 6, handleHeight);
         }
-
-
-        this.recipeList = this.menu.getAvailableRecipes();
-
-        int offset = (int)scrollAmount * 5;
-        for (int i = 0; i < 15 && i + offset < recipeList.size(); i++) {
-            AlchemyRecipe recipe = recipeList.get(i + offset);
-            ItemStack resultStack = recipe.getResultItem(minecraft.level.registryAccess());
-
-            int slotX = leftPos + 45 + (i % 5) * 22;
-            int slotY = topPos + 20 + (i / 5) * 22;
-
-            guiGraphics.renderItem(resultStack, slotX, slotY);
-            guiGraphics.renderItemDecorations(this.font, resultStack, slotX, slotY);
-
-            if (isHovering(slotX, slotY, 16, 16, mouseX, mouseY)) {
-                guiGraphics.renderTooltip(this.font, resultStack, mouseX, mouseY);
-            }
-        }
-
     }
+
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
