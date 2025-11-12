@@ -6,9 +6,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
-import net.minecraft.client.Minecraft;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 
 import java.util.List;
@@ -30,12 +28,16 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         // Render result preview
         List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
         System.out.println("[AlchemyScreen] Recipes to render: " + menu.getCurrentRecipes().size());
-        for (int i = 0; i < recipes.size(); i++) {
-            int x = leftPos + 52 + (i % 4) * 18; // 4 columns
-            int y = topPos + 15 + (i / 4) * 18; // Row based on index
+        int buttonsPerRow = 4;
+        int buttonSize = 18;
 
-            ItemStack preview = recipes.get(i).getResultItem(minecraft.level.registryAccess());
-            guiGraphics.renderItem(preview, x, y);
+        for (int i = 0; i < recipes.size(); i++) {
+            int row = i / buttonsPerRow;
+            int col = i % buttonsPerRow;
+            int x = leftPos + 60 + col * buttonSize;
+            int y = topPos + 10 + row * buttonSize;
+
+            guiGraphics.renderItem(recipes.get(i).getResultItem(minecraft.level.registryAccess()), x, y);
         }
 
     }
@@ -56,16 +58,23 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
+        int buttonsPerRow = 4;
+        int buttonSize = 18;
+
         for (int i = 0; i < recipes.size(); i++) {
-            int x = leftPos + 60 + i * 20;
-            int y = topPos + 10;
+            int row = i / buttonsPerRow;
+            int col = i % buttonsPerRow;
+            int x = leftPos + 60 + col * buttonSize;
+            int y = topPos + 10 + row * buttonSize;
+
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i); // Sync to server
-                menu.setSelectedRecipeIndex(i); // Update client
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i);
+                menu.setSelectedRecipeIndex(i);
                 return true;
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
+
 
 }

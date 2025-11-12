@@ -1,3 +1,4 @@
+
 package net.ravadael.tablemod.menu;
 
 import io.netty.buffer.Unpooled;
@@ -32,7 +33,6 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     public AlchemyTableMenu(int id, Inventory inv) {
         this(id, inv, new FriendlyByteBuf(Unpooled.buffer()).writeBlockPos(BlockPos.ZERO));
     }
-
 
     public AlchemyTableMenu(int id, Inventory inv, Level level, BlockPos pos) {
         super(ModMenuTypes.ALCHEMY_TABLE_MENU.get(), id);
@@ -69,7 +69,6 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(inv, k, 8 + k * 18, 142));
 
         this.recipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.ALCHEMY_RECIPE_TYPE.get());
-
     }
 
     @Override
@@ -81,65 +80,72 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
 
     private void updateRecipes() {
         this.recipes = level.getRecipeManager()
-            .getAllRecipesFor(AlchemyRecipeType.INSTANCE)
-            .stream()
-            .filter(recipe -> recipe.matches(input, level))
-            .toList();
+                .getAllRecipesFor(AlchemyRecipeType.INSTANCE)
+                .stream()
+                .filter(r -> r.matches(input, level))
+                .toList();
 
-        System.out.println("[AlchemyMenu] Input: " + input.getItem(0));
-        System.out.println("[AlchemyMenu] Matching recipes: " + recipes.size());
-
-        if (!recipes.isEmpty()) {
-            selectedRecipeIndex = 0;
-            result.setItem(0, recipes.get(0).getResultItem(level.registryAccess()).copy());
-        } else {
-            selectedRecipeIndex = -1;
-            result.setItem(0, ItemStack.EMPTY);
-        }
+        this.selectedRecipeIndex = -1; // Clear selection on input change
+        this.result.setItem(0, ItemStack.EMPTY);
         broadcastChanges();
     }
 
     public void setSelectedRecipeIndex(int index) {
         if (index >= 0 && index < recipes.size()) {
-            selectedRecipeIndex = index;
-            result.setItem(0, recipes.get(index).getResultItem(level.registryAccess()).copy());
-            broadcastChanges();
+            this.selectedRecipeIndex = index;
+            assembleRecipe();
         }
     }
 
-    public List<AlchemyRecipe> getCurrentRecipes() {
-        return recipes;
-    }
-
-    public int getSelectedRecipeIndex() {
-        return selectedRecipeIndex;
+    private void assembleRecipe() {
+        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {
+            AlchemyRecipe recipe = recipes.get(selectedRecipeIndex);
+            result.setItem(0, recipe.assemble(input, level.registryAccess()));
+        } else {
+            result.setItem(0, ItemStack.EMPTY);
+        }
+        broadcastChanges();
     }
 
     @Override
-    public boolean stillValid(Player player) {
-        return this.access.evaluate((level, pos) ->
-            player.distanceToSqr(pos.getCenter()) < 64.0D, true);
+    public boolean clickMenuButton(Player player, int id) {
+        setSelectedRecipeIndex(id);
+        return true;
     }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
+
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (index == 1) {
-                // Shift-clicking output
+
+            if (index == 1) { // Output slot
+                ItemStack resultStack = result.getItem(0);
+                if (resultStack.isEmpty()) return ItemStack.EMPTY;
+
+                ItemStack originalResult = resultStack.copy();
+
+                while (!input.getItem(0).isEmpty() && !result.getItem(0).isEmpty()) {
+                    ItemStack crafted = result.getItem(0).copy();
+                    if (!this.moveItemStackTo(crafted, 2, 38, true)) break;
+
+                    input.getItem(0).shrink(1);
+                    if (input.getItem(0).isEmpty()) input.setItem(0, ItemStack.EMPTY);
+
+                    assembleRecipe();
+                }
+
+                slot.onQuickCraft(resultStack, originalResult);
+                return originalResult;
+
+            } else if (index == 0) { // Input slot
                 if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
-                slot.onQuickCraft(itemstack1, itemstack);
-            } else if (index == 0) {
-                // Shift-clicking input
-                if (!this.moveItemStackTo(itemstack1, 2, 38, false)) {
-                    return ItemStack.EMPTY;
-                }
             } else {
-                // Shift-clicking in player inventory
                 if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
                     return ItemStack.EMPTY;
                 }
@@ -150,18 +156,23 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             } else {
                 slot.setChanged();
             }
+
+            slot.onTake(player, itemstack1);
         }
 
         return itemstack;
     }
 
     @Override
-    public boolean clickMenuButton(Player player, int index) {
-        if (index >= 0 && index < recipes.size()) {
-            setSelectedRecipeIndex(index);
-            return true;
-        }
-        return false;
+    public boolean stillValid(Player player) {
+        return this.access.evaluate((level, pos) ->
+                        player.distanceToSqr((double) pos.getX() + 0.5D,
+                                (double) pos.getY() + 0.5D,
+                                (double) pos.getZ() + 0.5D) <= 64.0D,
+                true);
     }
 
+    public List<AlchemyRecipe> getCurrentRecipes() {
+        return recipes;
+    }
 }
