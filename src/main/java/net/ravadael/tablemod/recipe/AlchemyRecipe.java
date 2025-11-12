@@ -24,8 +24,14 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     @Override
     public boolean matches(Container container, Level level) {
-        return ingredient.test(container.getItem(0));
+        ItemStack inputStack = container.getItem(0);
+        boolean result = ingredient.test(inputStack);
+        System.out.println("[AlchemyRecipe] Matching: " + inputStack + " => " + result);
+        System.out.println("[AlchemyRecipe] Ingredient: " + ingredient);
+
+        return result;
     }
+
 
     @Override
     public ItemStack assemble(Container container, RegistryAccess pRegistryAccess) {
@@ -49,8 +55,9 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     @Override
     public RecipeType<?> getType() {
-        return AlchemyRecipeType.INSTANCE;
+        return ModRecipes.ALCHEMY_RECIPE_TYPE.get(); // or whatever your correct registered object is
     }
+
 
     @Override
     public boolean isSpecial() {
@@ -66,5 +73,10 @@ public class AlchemyRecipe implements Recipe<Container> {
     public RecipeSerializer<?> getSerializer() {
         return ModRecipes.ALCHEMY_SERIALIZER.get();
     }
+
+    public ItemStack getResult() {
+        return this.result;
+    }
+
 
 }

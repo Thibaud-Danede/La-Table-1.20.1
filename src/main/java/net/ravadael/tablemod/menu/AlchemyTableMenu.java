@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
+import net.ravadael.tablemod.recipe.ModRecipes;
 
 import java.util.List;
 
@@ -67,7 +68,8 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         for (int k = 0; k < 9; ++k)
             this.addSlot(new Slot(inv, k, 8 + k * 18, 142));
 
-        this.recipes = level.getRecipeManager().getAllRecipesFor(AlchemyRecipeType.INSTANCE);
+        this.recipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.ALCHEMY_RECIPE_TYPE.get());
+
     }
 
     @Override
@@ -84,6 +86,9 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             .filter(recipe -> recipe.matches(input, level))
             .toList();
 
+        System.out.println("[AlchemyMenu] Input: " + input.getItem(0));
+        System.out.println("[AlchemyMenu] Matching recipes: " + recipes.size());
+
         if (!recipes.isEmpty()) {
             selectedRecipeIndex = 0;
             result.setItem(0, recipes.get(0).getResultItem(level.registryAccess()).copy());
@@ -91,7 +96,6 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             selectedRecipeIndex = -1;
             result.setItem(0, ItemStack.EMPTY);
         }
-
         broadcastChanges();
     }
 

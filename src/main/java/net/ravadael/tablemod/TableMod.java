@@ -11,6 +11,7 @@ import net.ravadael.tablemod.block.ModBlocks;
 import net.ravadael.tablemod.block.entity.ModBlockEntities;
 import net.ravadael.tablemod.item.ModCreativeModTabs;
 import net.ravadael.tablemod.item.ModItems;
+import net.ravadael.tablemod.recipe.ModRecipes;
 import org.slf4j.Logger;
 import net.ravadael.tablemod.menu.ModMenuTypes;
 
@@ -32,6 +33,7 @@ public class TableMod {
         ModBlockEntities.BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
         MinecraftForge.EVENT_BUS.register(this);
         ModMenuTypes.MENUS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModRecipes.register(modEventBus);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

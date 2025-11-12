@@ -1,0 +1,9 @@
+{
+  "type": "tablemod:alchemy",
+  "ingredient": {
+    "tag": "minecraft:planks"
+  },
+  "result": {
+    "item": "minecraft:jungle_planks"
+  }
+}

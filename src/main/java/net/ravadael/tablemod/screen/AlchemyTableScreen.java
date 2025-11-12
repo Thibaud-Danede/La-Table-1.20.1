@@ -3,13 +3,15 @@ package net.ravadael.tablemod.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
 import net.minecraft.client.Minecraft;
+import net.ravadael.tablemod.recipe.AlchemyRecipe;
+
+import java.util.List;
 
 public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation("tablemod", "textures/gui/alchemy_table.png");
@@ -26,11 +28,16 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
         // Render result preview
-        int recipeIndex = menu.getSelectedRecipeIndex();
-        if (recipeIndex >= 0 && recipeIndex < menu.getCurrentRecipes().size()) {
-            ItemStack preview = menu.getCurrentRecipes().get(recipeIndex).getResultItem(minecraft.level.registryAccess());
-            guiGraphics.renderItem(preview, leftPos + 143, topPos + 33);
+        List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
+        System.out.println("[AlchemyScreen] Recipes to render: " + menu.getCurrentRecipes().size());
+        for (int i = 0; i < recipes.size(); i++) {
+            int x = leftPos + 52 + (i % 4) * 18; // 4 columns
+            int y = topPos + 15 + (i / 4) * 18; // Row based on index
+
+            ItemStack preview = recipes.get(i).getResultItem(minecraft.level.registryAccess());
+            guiGraphics.renderItem(preview, x, y);
         }
+
     }
 
     @Override

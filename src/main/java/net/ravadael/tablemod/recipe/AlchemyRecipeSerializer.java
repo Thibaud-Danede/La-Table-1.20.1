@@ -10,23 +10,26 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 
 public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> {
+
     @Override
-    public AlchemyRecipe fromJson(ResourceLocation id, JsonObject json) {
-        Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"));
+    public AlchemyRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
+        Ingredient ingredient = Ingredient.fromJson(json.get("ingredient"));
         ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-        return new AlchemyRecipe(id, ingredient, result);
+        return new AlchemyRecipe(recipeId, ingredient, result);
     }
 
     @Override
-    public AlchemyRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buffer) {
+    public AlchemyRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
         Ingredient ingredient = Ingredient.fromNetwork(buffer);
         ItemStack result = buffer.readItem();
-        return new AlchemyRecipe(id, ingredient, result);
+        return new AlchemyRecipe(recipeId, ingredient, result);
     }
 
     @Override
     public void toNetwork(FriendlyByteBuf buffer, AlchemyRecipe recipe) {
-        recipe.getIngredients().get(0).toNetwork(buffer);
-        buffer.writeItem(recipe.getResultItem(null));
+        for (Ingredient ingredient : recipe.getIngredients()) {
+            ingredient.toNetwork(buffer);
+        }
+        buffer.writeItem(recipe.getResult());
     }
 }
