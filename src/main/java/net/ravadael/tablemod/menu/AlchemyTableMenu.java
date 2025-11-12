@@ -45,9 +45,25 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.level = inv.player.level();
 
         // Input (Plank)
-        this.addSlot(new Slot(blockEntity, 0, 20, 23));
+        this.addSlot(new Slot(blockEntity, 0, 20, 23) {
+            @Override public void setChanged() {
+                super.setChanged();
+                AlchemyTableMenu.this.slotsChanged(blockEntity);
+            }
+            @Override public boolean mayPlace(ItemStack stack) {
+                return blockEntity.canPlaceItem(0, stack);
+            }
+        });
         // Fuel (Glowstone)
-        this.addSlot(new Slot(blockEntity, 1, 20, 42));
+        this.addSlot(new Slot(blockEntity, 1, 20, 42) {
+            @Override public void setChanged() {
+                super.setChanged();
+                AlchemyTableMenu.this.slotsChanged(blockEntity);
+            }
+            @Override public boolean mayPlace(ItemStack stack) {
+                return blockEntity.canPlaceItem(1, stack);
+            }
+        });
         // Output sur ResultContainer au lieu du BE
         this.addSlot(new ResultSlot(this.result, this.blockEntity, 0, 143, 32));
 
@@ -242,23 +258,37 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public boolean clickMenuButton(net.minecraft.world.entity.player.Player player, int id) {
-        if (this.level.isClientSide) return true;
-        this.selectedIndex = id;
-        this.refreshOutput(); // léger
-        return true;
+    public boolean clickMenuButton(Player player, int id) {
+        if (this.level.isClientSide) return true; // on laisse le client “croire” que c’est OK
+
+        if (id >= 0 && id < this.recipeResults.size()) {
+            this.selectedIndex = id;
+            this.refreshOutput();   // remplit immédiatement le slot résultat
+            this.broadcastChanges();
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
+
+        // On ne fait ça que côté serveur
         if (this.level.isClientSide) return;
 
+        // Quand input (slot 0) ou fuel (slot 1) changent dans le BE,
+        // on met à jour la liste de recettes et la sortie.
         if (container == this.blockEntity) {
-            refreshRecipeList();   // Updates internal list
-            refreshOutput();       // Updates result slot
+            this.refreshRecipeList();   // remplit recipeResults en fonction de input+fuel
+            // Optionnel : invalider la sélection si elle n’est plus valide
+            if (this.selectedIndex < 0 || this.selectedIndex >= this.recipeResults.size()) {
+                this.selectedIndex = -1;
+            }
+            this.refreshOutput();       // met l’ItemStack dans le ResultContainer (index 0)
         }
     }
+
 
     private void updateAvailableRecipes() {
         ItemStack in = blockEntity.getItem(0);

@@ -62,7 +62,6 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
     @Override
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        menu.refreshRecipeList();
         g.blit(TEXTURE, leftPos, topPos, BG_U, BG_V, BG_W, BG_H, TEX_W, TEX_H);
 
         final int totalEntries = getTotalEntries();
@@ -103,15 +102,6 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
         int thumbOffset = getScrollPixelOffset(totalRows);
         g.blit(TEXTURE, sx, sy + thumbOffset, SCROLL_THUMB_U, SCROLL_THUMB_V, SCROLL_THUMB_W, SCROLL_THUMB_H, TEX_W, TEX_H);
-
-
-        menu.refreshRecipeList(); // refresh dynamically every frame
-
-        /*System.out.println(
-                "Input: " + menu.getBlockEntity().getItem(0) +
-                        " | Fuel: " + menu.getBlockEntity().getItem(1) +
-                        " | Recipe count: " + menu.getVisibleRecipes().size()
-        );*/
 
     }
 
