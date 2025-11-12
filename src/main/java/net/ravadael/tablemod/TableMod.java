@@ -27,24 +27,16 @@ public class TableMod {
         ModCreativeModTabs.register(modEventBus);
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
-
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreative);
-
         ModBlockEntities.BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
-
-
         MinecraftForge.EVENT_BUS.register(this);
-        ModMenuTypes.MENU_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModMenuTypes.MENUS.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // si tu as des PacketHandlers / setup serveur, mets-les ici
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        // si tu ajoutes tes items/blocs dans tes tabs custom, fais-le ici
     }
-
-
 }

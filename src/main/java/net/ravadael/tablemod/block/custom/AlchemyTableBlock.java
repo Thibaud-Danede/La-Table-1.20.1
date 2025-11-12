@@ -22,7 +22,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
 
 public class AlchemyTableBlock extends HorizontalDirectionalBlock {
-    public static final DirectionProperty FACING = FACING;
+    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final Component CONTAINER_TITLE = Component.translatable("container.tablemod.alchemy");
 
     public AlchemyTableBlock(BlockBehaviour.Properties properties) {
@@ -57,5 +57,10 @@ public class AlchemyTableBlock extends HorizontalDirectionalBlock {
     public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
         return new SimpleMenuProvider((id, inv, player) ->
             new AlchemyTableMenu(id, inv, level, pos), CONTAINER_TITLE);
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
     }
 }

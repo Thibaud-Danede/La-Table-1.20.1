@@ -1,7 +1,5 @@
 package net.ravadael.tablemod.recipe;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -17,6 +15,7 @@ public class ModRecipes {
         SERIALIZERS.register("alchemy", AlchemyRecipeSerializer::new);
 
     public static void registerRecipeType() {
-        RecipeType.register("tablemod:alchemy", AlchemyRecipeType.INSTANCE);
+        AlchemyRecipeType.INSTANCE = RecipeType.register("tablemod:alchemy");
+
     }
 }

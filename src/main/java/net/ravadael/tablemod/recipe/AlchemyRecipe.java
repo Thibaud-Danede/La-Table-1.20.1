@@ -1,15 +1,14 @@
 package net.ravadael.tablemod.recipe;
 
-import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
 public class AlchemyRecipe implements Recipe<Container> {
@@ -29,7 +28,7 @@ public class AlchemyRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack assemble(Container container) {
+    public ItemStack assemble(Container container, RegistryAccess pRegistryAccess) {
         return result.copy();
     }
 
@@ -39,7 +38,7 @@ public class AlchemyRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
         return result;
     }
 
@@ -62,4 +61,10 @@ public class AlchemyRecipe implements Recipe<Container> {
     public NonNullList<Ingredient> getIngredients() {
         return NonNullList.of(Ingredient.EMPTY, ingredient);
     }
+
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return ModRecipes.ALCHEMY_SERIALIZER.get();
+    }
+
 }

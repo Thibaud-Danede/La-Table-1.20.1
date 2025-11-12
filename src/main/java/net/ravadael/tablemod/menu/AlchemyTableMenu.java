@@ -1,5 +1,6 @@
 package net.ravadael.tablemod.menu;
 
+import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
@@ -9,7 +10,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
@@ -21,12 +21,17 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     private final SimpleContainer result = new SimpleContainer(1);
     private final ContainerLevelAccess access;
     private final Level level;
-    private List<RecipeHolder<AlchemyRecipe>> recipes;
+    private List<AlchemyRecipe> recipes;
     private int selectedRecipeIndex = -1;
 
     public AlchemyTableMenu(int id, Inventory inv, FriendlyByteBuf buf) {
         this(id, inv, inv.player.level(), buf.readBlockPos());
     }
+
+    public AlchemyTableMenu(int id, Inventory inv) {
+        this(id, inv, new FriendlyByteBuf(Unpooled.buffer()).writeBlockPos(BlockPos.ZERO));
+    }
+
 
     public AlchemyTableMenu(int id, Inventory inv, Level level, BlockPos pos) {
         super(ModMenuTypes.ALCHEMY_TABLE_MENU.get(), id);
@@ -56,7 +61,6 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             }
         });
 
-        // Player inventory slots
         for (int row = 0; row < 3; ++row)
             for (int col = 0; col < 9; ++col)
                 this.addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -77,12 +81,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.recipes = level.getRecipeManager()
             .getAllRecipesFor(AlchemyRecipeType.INSTANCE)
             .stream()
-            .filter(recipe -> recipe.value().matches(input, level))
+            .filter(recipe -> recipe.matches(input, level))
             .toList();
 
         if (!recipes.isEmpty()) {
             selectedRecipeIndex = 0;
-            result.setItem(0, recipes.get(0).value().getResultItem().copy());
+            result.setItem(0, recipes.get(0).getResultItem(level.registryAccess()).copy());
         } else {
             selectedRecipeIndex = -1;
             result.setItem(0, ItemStack.EMPTY);
@@ -94,12 +98,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     public void setSelectedRecipeIndex(int index) {
         if (index >= 0 && index < recipes.size()) {
             selectedRecipeIndex = index;
-            result.setItem(0, recipes.get(index).value().getResultItem().copy());
+            result.setItem(0, recipes.get(index).getResultItem(level.registryAccess()).copy());
             broadcastChanges();
         }
     }
 
-    public List<RecipeHolder<AlchemyRecipe>> getCurrentRecipes() {
+    public List<AlchemyRecipe> getCurrentRecipes() {
         return recipes;
     }
 
@@ -109,7 +113,42 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return this.access.evaluate((level, pos) -> 
+        return this.access.evaluate((level, pos) ->
             player.distanceToSqr(pos.getCenter()) < 64.0D, true);
     }
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if (index == 1) {
+                // Shift-clicking output
+                if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
+                    return ItemStack.EMPTY;
+                }
+                slot.onQuickCraft(itemstack1, itemstack);
+            } else if (index == 0) {
+                // Shift-clicking input
+                if (!this.moveItemStackTo(itemstack1, 2, 38, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
+                // Shift-clicking in player inventory
+                if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemstack;
+    }
+
 }

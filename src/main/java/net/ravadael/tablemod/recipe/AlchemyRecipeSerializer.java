@@ -1,19 +1,19 @@
 package net.ravadael.tablemod.recipe;
 
 import com.google.gson.JsonObject;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
 public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> {
     @Override
     public AlchemyRecipe fromJson(ResourceLocation id, JsonObject json) {
         Ingredient ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"));
-        ItemStack result = ItemStack.CODEC.parse(JsonObject.create(GsonHelper.getAsJsonObject(json, "result"))).result().orElse(ItemStack.EMPTY);
+        ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
         return new AlchemyRecipe(id, ingredient, result);
     }
 
@@ -27,6 +27,6 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
     @Override
     public void toNetwork(FriendlyByteBuf buffer, AlchemyRecipe recipe) {
         recipe.getIngredients().get(0).toNetwork(buffer);
-        buffer.writeItem(recipe.getResultItem());
+        buffer.writeItem(recipe.getResultItem(null));
     }
 }

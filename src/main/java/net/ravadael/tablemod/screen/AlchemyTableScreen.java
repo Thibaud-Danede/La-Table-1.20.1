@@ -3,6 +3,7 @@ package net.ravadael.tablemod.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,7 +28,7 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         // Render result preview
         int recipeIndex = menu.getSelectedRecipeIndex();
         if (recipeIndex >= 0 && recipeIndex < menu.getCurrentRecipes().size()) {
-            ItemStack preview = menu.getCurrentRecipes().get(recipeIndex).value().getResultItem();
+            ItemStack preview = menu.getCurrentRecipes().get(recipeIndex).getResultItem(minecraft.level.registryAccess());
             guiGraphics.renderItem(preview, leftPos + 143, topPos + 33);
         }
     }
