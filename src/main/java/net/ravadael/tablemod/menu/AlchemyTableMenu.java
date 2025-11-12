@@ -164,6 +164,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 }
 
                 assembleRecipe();
+                result.setItem(0, ItemStack.EMPTY);
                 return totalCrafted;
 
             } else if (index == 0) { // Input slot
