@@ -55,16 +55,17 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
-            for (int i = 0; i < menu.getCurrentRecipes().size(); i++) {
-                int x = leftPos + 52 + (i % 4) * 18;
-                int y = topPos + 15 + (i / 4) * 18;
-                if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                    Minecraft.getInstance().gameMode.handleInventoryButtonClick(menu.containerId, i);
-                    return true;
-                }
+        List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
+        for (int i = 0; i < recipes.size(); i++) {
+            int x = leftPos + 60 + i * 20;
+            int y = topPos + 10;
+            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i); // Sync to server
+                menu.setSelectedRecipeIndex(i); // Update client
+                return true;
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
+
 }

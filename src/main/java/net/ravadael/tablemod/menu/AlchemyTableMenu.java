@@ -155,4 +155,13 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         return itemstack;
     }
 
+    @Override
+    public boolean clickMenuButton(Player player, int index) {
+        if (index >= 0 && index < recipes.size()) {
+            setSelectedRecipeIndex(index);
+            return true;
+        }
+        return false;
+    }
+
 }

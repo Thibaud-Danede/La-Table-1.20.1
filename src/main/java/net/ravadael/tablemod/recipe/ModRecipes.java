@@ -20,7 +20,7 @@ public class ModRecipes {
 
     public static final RegistryObject<RecipeType<AlchemyRecipe>> ALCHEMY_RECIPE_TYPE =
             RECIPE_TYPES.register("alchemy", () -> {
-                AlchemyRecipeType.INSTANCE = new AlchemyRecipeType();
+                AlchemyRecipeType.INSTANCE = AlchemyRecipeType.INSTANCE;
                 return AlchemyRecipeType.INSTANCE;
             });
 

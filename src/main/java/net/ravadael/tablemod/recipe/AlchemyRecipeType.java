@@ -6,11 +6,12 @@ public class AlchemyRecipeType implements RecipeType<AlchemyRecipe> {
     public static AlchemyRecipeType INSTANCE = new AlchemyRecipeType();
     public static final String ID = "alchemy";
 
-    AlchemyRecipeType() {}
+    private AlchemyRecipeType() {}
 
     @Override
     public String toString() {
         return ID;
     }
 }
+
 
