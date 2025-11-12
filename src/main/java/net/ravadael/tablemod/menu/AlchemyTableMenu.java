@@ -39,6 +39,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.level = level;
         this.access = ContainerLevelAccess.create(level, pos);
 
+        // Input slot
         this.addSlot(new Slot(input, 0, 20, 33) {
             @Override
             public void setChanged() {
@@ -47,6 +48,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             }
         });
 
+        // Output slot
         this.addSlot(new Slot(result, 0, 143, 33) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -57,11 +59,15 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
                 input.getItem(0).shrink(1);
+                if (input.getItem(0).isEmpty()) {
+                    input.setItem(0, ItemStack.EMPTY);
+                }
                 slotsChanged(input);
                 super.onTake(player, stack);
             }
         });
 
+        // Player inventory
         for (int row = 0; row < 3; ++row)
             for (int col = 0; col < 9; ++col)
                 this.addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -85,7 +91,15 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 .filter(r -> r.matches(input, level))
                 .toList();
 
-        this.selectedRecipeIndex = -1; // Clear selection on input change
+        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {
+            AlchemyRecipe current = recipes.get(selectedRecipeIndex);
+            if (current.matches(input, level)) {
+                assembleRecipe();
+                return;
+            }
+        }
+
+        this.selectedRecipeIndex = -1;
         this.result.setItem(0, ItemStack.EMPTY);
         broadcastChanges();
     }
@@ -123,23 +137,34 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             itemstack = itemstack1.copy();
 
             if (index == 1) { // Output slot
-                ItemStack resultStack = result.getItem(0);
-                if (resultStack.isEmpty()) return ItemStack.EMPTY;
-
-                ItemStack originalResult = resultStack.copy();
-
-                while (!input.getItem(0).isEmpty() && !result.getItem(0).isEmpty()) {
-                    ItemStack crafted = result.getItem(0).copy();
-                    if (!this.moveItemStackTo(crafted, 2, 38, true)) break;
-
-                    input.getItem(0).shrink(1);
-                    if (input.getItem(0).isEmpty()) input.setItem(0, ItemStack.EMPTY);
-
-                    assembleRecipe();
+                if (selectedRecipeIndex < 0 || selectedRecipeIndex >= recipes.size()) {
+                    return ItemStack.EMPTY;
                 }
 
-                slot.onQuickCraft(resultStack, originalResult);
-                return originalResult;
+                AlchemyRecipe recipe = recipes.get(selectedRecipeIndex);
+                ItemStack inputStack = input.getItem(0);
+                ItemStack outputStack = recipe.getResultItem(level.registryAccess()).copy();
+
+                int maxCrafts = Math.min(inputStack.getCount(), outputStack.getMaxStackSize());
+                ItemStack totalCrafted = ItemStack.EMPTY;
+
+                for (int i = 0; i < maxCrafts; i++) {
+                    if (!this.moveItemStackTo(outputStack.copy(), 2, 38, true)) break;
+
+                    inputStack.shrink(1);
+                    if (inputStack.isEmpty()) {
+                        input.setItem(0, ItemStack.EMPTY);
+                    }
+
+                    if (totalCrafted.isEmpty()) {
+                        totalCrafted = outputStack.copy();
+                    } else {
+                        totalCrafted.grow(outputStack.getCount());
+                    }
+                }
+
+                assembleRecipe();
+                return totalCrafted;
 
             } else if (index == 0) { // Input slot
                 if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
@@ -166,9 +191,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return this.access.evaluate((level, pos) ->
-                        player.distanceToSqr((double) pos.getX() + 0.5D,
-                                (double) pos.getY() + 0.5D,
-                                (double) pos.getZ() + 0.5D) <= 64.0D,
+                        player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D,
                 true);
     }
 
