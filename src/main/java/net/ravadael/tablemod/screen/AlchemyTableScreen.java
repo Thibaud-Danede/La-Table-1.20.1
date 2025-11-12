@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu> {
+    private net.minecraft.world.item.ItemStack lastInput = net.minecraft.world.item.ItemStack.EMPTY;
+    private net.minecraft.world.item.ItemStack lastFuel  = net.minecraft.world.item.ItemStack.EMPTY;
+
 
     private static final String MODID = "tablemod";
     private static final ResourceLocation TEXTURE =
@@ -185,5 +188,21 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, absolute);
         // Mets aussi à jour l’état visuel local si tu veux surligner immédiatement
         this.selectedIndex = absolute;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        // Sur client: si input/fuel ont changé (après sync initiale), recalculer la liste visible
+        net.minecraft.world.item.ItemStack in = this.menu.getSlot(0).getItem();
+        net.minecraft.world.item.ItemStack fu = this.menu.getSlot(1).getItem();
+        boolean inputChanged = !net.minecraft.world.item.ItemStack.isSameItemSameTags(in, lastInput) || in.getCount() != lastInput.getCount();
+        boolean fuelChanged  = !net.minecraft.world.item.ItemStack.isSameItemSameTags(fu, lastFuel) || fu.getCount() != lastFuel.getCount();
+        if (inputChanged || fuelChanged) {
+            lastInput = in.copy();
+            lastFuel  = fu.copy();
+            // Recalcule la liste de recettes côté client pour le rendu (ne touche pas l'output)
+            this.menu.refreshRecipeList();
+        }
     }
 }

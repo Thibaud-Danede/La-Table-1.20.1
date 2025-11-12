@@ -46,5 +46,14 @@ public class ResultSlot extends Slot {
         }
         return false;
     }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+        this.container.setChanged();
+    }
+
 }
+
+
 

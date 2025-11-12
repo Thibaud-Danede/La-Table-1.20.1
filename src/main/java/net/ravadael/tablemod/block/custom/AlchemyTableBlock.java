@@ -102,6 +102,7 @@ public class AlchemyTableBlock extends BaseEntityBlock implements Container {
 
     }
 
+
     @Override
     public boolean stillValid(Player pPlayer) {
         return false;

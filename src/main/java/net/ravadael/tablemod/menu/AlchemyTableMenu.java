@@ -3,6 +3,7 @@ package net.ravadael.tablemod.menu;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
+import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -18,7 +19,7 @@ import net.ravadael.tablemod.menu.slot.ResultSlot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlchemyTableMenu extends AbstractContainerMenu {
+public class AlchemyTableMenu extends AbstractContainerMenu implements ContainerListener {
     private final AlchemyTableBlockEntity blockEntity;
     private final ContainerLevelAccess access;
     private final Level level;
@@ -43,32 +44,13 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.blockEntity = blockEntity;
         this.access = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
         this.level = inv.player.level();
+        this.addSlotListener(this);
 
-        // Input (Plank)
-        this.addSlot(new Slot(blockEntity, 0, 20, 23) {
-            @Override public void setChanged() {
-                super.setChanged();
-                AlchemyTableMenu.this.slotsChanged(blockEntity);
-            }
-            @Override public boolean mayPlace(ItemStack stack) {
-                return blockEntity.canPlaceItem(0, stack);
-            }
-        });
-        // Fuel (Glowstone)
-        this.addSlot(new Slot(blockEntity, 1, 20, 42) {
-            @Override public void setChanged() {
-                super.setChanged();
-                AlchemyTableMenu.this.slotsChanged(blockEntity);
-            }
-            @Override public boolean mayPlace(ItemStack stack) {
-                return blockEntity.canPlaceItem(1, stack);
-            }
-        });
-        // Output sur ResultContainer au lieu du BE
+
+        this.addSlot(new Slot(blockEntity, 0, 20, 23));
+        this.addSlot(new Slot(blockEntity, 1, 20, 42));
         this.addSlot(new ResultSlot(this.result, this.blockEntity, 0, 143, 32));
 
-
-        // Player inventory
         for (int row = 0; row < 3; ++row)
             for (int col = 0; col < 9; ++col)
                 this.addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -76,9 +58,17 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         for (int k = 0; k < 9; ++k)
             this.addSlot(new Slot(inv, k, 8 + k * 18, 142));
 
-        refreshRecipeList();
+        if (!this.level.isClientSide) {
+            // Initial server-side recipe build and default selection
+            refreshRecipeList();
+            if (this.selectedIndex < 0 && !this.recipeResults.isEmpty()) {
+                this.selectedIndex = 0;
+            }
+            this.refreshOutput();
+        } else {
+            refreshRecipeList();
+        }
         this.player = inv.player;
-
     }
 
     public void refreshRecipeList() {
@@ -96,8 +86,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         // Reset selected recipe if input/fuel changed
         if (selectedIndex >= recipeResults.size()) {
             selectedIndex = -1;
-            result.setItem(0, ItemStack.EMPTY);
-        }
+            if (!this.level.isClientSide) { this.result.setItem(0, ItemStack.EMPTY); } }
     }
 
 
@@ -270,23 +259,21 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         return false;
     }
 
-    @Override
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
 
-        // On ne fait ça que côté serveur
         if (this.level.isClientSide) return;
 
-        // Quand input (slot 0) ou fuel (slot 1) changent dans le BE,
-        // on met à jour la liste de recettes et la sortie.
-        if (container == this.blockEntity) {
-            this.refreshRecipeList();   // remplit recipeResults en fonction de input+fuel
-            // Optionnel : invalider la sélection si elle n’est plus valide
-            if (this.selectedIndex < 0 || this.selectedIndex >= this.recipeResults.size()) {
-                this.selectedIndex = -1;
-            }
-            this.refreshOutput();       // met l’ItemStack dans le ResultContainer (index 0)
+        this.refreshRecipeList();
+        if (this.selectedIndex < 0 || this.selectedIndex >= this.recipeResults.size()) {
+            this.selectedIndex = -1;
         }
+        if (this.selectedIndex < 0 && !this.recipeResults.isEmpty()) {
+            this.selectedIndex = 0;
+        }
+        this.refreshOutput();
+        System.out.println("AlchemyTableMenu: slotsChanged triggered");
+
     }
 
 
@@ -346,11 +333,26 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
 
         if (this.level.isClientSide) return;
 
+
+        // Auto-select first recipe if none selected (server-side)
+        if (this.selectedIndex < 0 && !this.recipeResults.isEmpty()) {
+            this.selectedIndex = 0;
+        }
         net.minecraft.world.item.ItemStack out = net.minecraft.world.item.ItemStack.EMPTY;
         if (this.canCraftOnce()) {
             out = getSelectedOutputCopy();
         }
         this.result.setItem(0, out);
         this.broadcastChanges();
+    }
+
+    @Override
+    public void slotChanged(AbstractContainerMenu pContainerToSend, int pDataSlotIndex, ItemStack pStack) {
+
+    }
+
+    @Override
+    public void dataChanged(AbstractContainerMenu pContainerMenu, int pDataSlotIndex, int pValue) {
+
     }
 }
