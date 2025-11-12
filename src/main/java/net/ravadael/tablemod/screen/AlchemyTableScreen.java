@@ -1,208 +1,62 @@
-package net.ravadael.tablemod.screen;// (optionnel) package com.tontonmod.client.screen;
+package net.ravadael.tablemod.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.client.Minecraft;
 
 public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu> {
-    private net.minecraft.world.item.ItemStack lastInput = net.minecraft.world.item.ItemStack.EMPTY;
-    private net.minecraft.world.item.ItemStack lastFuel  = net.minecraft.world.item.ItemStack.EMPTY;
-
-
-    private static final String MODID = "tablemod";
-    private static final ResourceLocation TEXTURE =
-            new ResourceLocation(MODID, "textures/gui/alchemy_table.png");
-
-    private static final int TEX_W = 256, TEX_H = 256;
-
-    private static final int BG_U = 0, BG_V = 0, BG_W = 200, BG_H = 220;
-
-    private static final int GRID_X = 52;
-    private static final int GRID_Y = 15;
-
-    private static final int CELL_W = 16;
-    private static final int CELL_H = 18;
-
-    private static final int GAP_X = 0;
-    private static final int GAP_Y = 0;
-    private static final int COLS  = 3;   // colonnes visibles
-    private static final int ROWS  = 3;   // lignes visibles (donc 9 cellules affichées à la fois)
-
-    private static final int BTN_U             = 0;
-    private static final int BTN_V_NORMAL      = 166;
-    private static final int BTN_V_SELECTED    = 184;
-    private static final int BTN_V_HOVER       = 202;
-
-    private static final int SCROLL_TRACK_U = 176, SCROLL_TRACK_V = 0,   SCROLL_TRACK_W = 12, SCROLL_TRACK_H = 56;
-    private static final int SCROLL_THUMB_U = 188, SCROLL_THUMB_V = 0,   SCROLL_THUMB_W = 12, SCROLL_THUMB_H = 15;
-
-    private static final int SCROLL_X = 119;
-    private static final int SCROLL_Y = 15;
-    private static final int SCROLL_H = 54; // hauteur visible de la gouttière (dans ton fond)
-
-    private int selectedIndex = -1;
-
-    private int scrollIndex = 0;
+    private static final ResourceLocation TEXTURE = new ResourceLocation("tablemod", "textures/gui/alchemy_table.png");
 
     public AlchemyTableScreen(AlchemyTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = BG_W;
-        this.imageHeight = BG_H;
+        this.imageWidth = 176;
+        this.imageHeight = 166;
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
-        g.blit(TEXTURE, leftPos, topPos, BG_U, BG_V, BG_W, BG_H, TEX_W, TEX_H);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
-        final int totalEntries = getTotalEntries();
-        final int totalRows    = Mth.ceil(totalEntries / (float) COLS);
-        final int maxScroll    = Math.max(0, totalRows - ROWS);
-
-        int firstRow = Mth.clamp(scrollIndex, 0, maxScroll);
-        int cellGlobalIndex = firstRow * COLS;
-
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                int x = leftPos + GRID_X + col * (CELL_W + GAP_X);
-                int y = topPos  + GRID_Y + row * (CELL_H + GAP_Y);
-
-                if (cellGlobalIndex >= totalEntries) {
-                    cellGlobalIndex++;
-                    continue;
-                }
-
-                boolean hovered  = isMouseOverCell(mouseX, mouseY, x, y);
-                boolean selected = (cellGlobalIndex == selectedIndex);
-
-                int v = hovered ? BTN_V_HOVER : (selected ? BTN_V_SELECTED : BTN_V_NORMAL);
-                g.blit(TEXTURE, x, y, BTN_U, v, CELL_W, CELL_H, TEX_W, TEX_H);
-
-                if (cellGlobalIndex < menu.getVisibleRecipes().size()) {
-                    g.renderItem(menu.getVisibleRecipes().get(cellGlobalIndex), x + 1, y + 1);
-                }
-
-                cellGlobalIndex++;
-            }
+        // Render result preview
+        int recipeIndex = menu.getSelectedRecipeIndex();
+        if (recipeIndex >= 0 && recipeIndex < menu.getCurrentRecipes().size()) {
+            ItemStack preview = menu.getCurrentRecipes().get(recipeIndex).value().getResultItem();
+            guiGraphics.renderItem(preview, leftPos + 143, topPos + 33);
         }
-
-        int sx = leftPos + SCROLL_X;
-        int sy = topPos  + SCROLL_Y;
-
-        g.blit(TEXTURE, sx, sy, SCROLL_TRACK_U, SCROLL_TRACK_V, SCROLL_TRACK_W, SCROLL_TRACK_H, TEX_W, TEX_H);
-
-        int thumbOffset = getScrollPixelOffset(totalRows);
-        g.blit(TEXTURE, sx, sy + thumbOffset, SCROLL_THUMB_U, SCROLL_THUMB_V, SCROLL_THUMB_W, SCROLL_THUMB_H, TEX_W, TEX_H);
-
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(g);
-        super.render(g, mouseX, mouseY, partialTick);
-        this.renderTooltip(g, mouseX, mouseY);
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.drawString(font, title, 8, 6, 4210752, false);
+        guiGraphics.drawString(font, playerInventoryTitle, 8, 72, 4210752, false);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        final int totalEntries = getTotalEntries();
-        final int totalRows    = Mth.ceil(totalEntries / (float) COLS);
-        final int maxScroll    = Math.max(0, totalRows - ROWS);
-
-        if (maxScroll > 0) {
-            scrollIndex = Mth.clamp(scrollIndex - (int) Math.signum(delta), 0, maxScroll);
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        final int totalEntries = getTotalEntries();
-        final int firstRow     = scrollIndex;
-        int cellGlobalIndex    = firstRow * COLS;
-
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                int x = leftPos + GRID_X + col * (CELL_W + GAP_X);
-                int y = topPos  + GRID_Y + row * (CELL_H + GAP_Y);
-
-                if (cellGlobalIndex < totalEntries &&
-                        mouseX >= x && mouseX < x + CELL_W &&
-                        mouseY >= y && mouseY < y + CELL_H) {
-
-                    selectedIndex = cellGlobalIndex;
-                    onCellClicked(selectedIndex);
+        if (button == 0) {
+            for (int i = 0; i < menu.getCurrentRecipes().size(); i++) {
+                int x = leftPos + 52 + (i % 4) * 18;
+                int y = topPos + 15 + (i / 4) * 18;
+                if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                    Minecraft.getInstance().gameMode.handleInventoryButtonClick(menu.containerId, i);
                     return true;
                 }
-                cellGlobalIndex++;
             }
         }
-
-        if (mouseX >= leftPos + SCROLL_X && mouseX < leftPos + SCROLL_X + SCROLL_THUMB_W &&
-                mouseY >= topPos + SCROLL_Y && mouseY < topPos + SCROLL_Y + SCROLL_H) {
-
-            final int totalRows = Mth.ceil(getTotalEntries() / (float) COLS);
-            final int maxScroll = Math.max(0, totalRows - ROWS);
-            if (maxScroll > 0) {
-                int rel = (int) (mouseY - (topPos + SCROLL_Y)) - SCROLL_THUMB_H / 2;
-                rel = Mth.clamp(rel, 0, SCROLL_H - SCROLL_THUMB_H);
-                float ratio = rel / (float) (SCROLL_H - SCROLL_THUMB_H);
-                scrollIndex = Mth.clamp(Math.round(ratio * maxScroll), 0, maxScroll);
-                return true;
-            }
-        }
-
         return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    private int getTotalEntries() {
-        return 12;
-    }
-
-    private int getScrollPixelOffset(int totalRows) {
-        int maxScroll = Math.max(0, totalRows - ROWS);
-        if (maxScroll == 0) return 0;
-        int track = SCROLL_H - SCROLL_THUMB_H;
-        return (int) (track * (scrollIndex / (float) maxScroll));
-    }
-
-    private boolean isMouseOverCell(int mouseX, int mouseY, int x, int y) {
-        return mouseX >= x && mouseX < x + CELL_W && mouseY >= y && mouseY < y + CELL_H;
-    }
-
-    private void onCellClicked(int localIndexInPage) {
-        int absolute = menu.getStartIndex() + localIndexInPage; // expose un getter si besoin
-        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, absolute);
-        // Mets aussi à jour l’état visuel local si tu veux surligner immédiatement
-        this.selectedIndex = absolute;
-    }
-
-    @Override
-    protected void containerTick() {
-        super.containerTick();
-        // Sur client: si input/fuel ont changé (après sync initiale), recalculer la liste visible
-        net.minecraft.world.item.ItemStack in = this.menu.getSlot(0).getItem();
-        net.minecraft.world.item.ItemStack fu = this.menu.getSlot(1).getItem();
-        boolean inputChanged = !net.minecraft.world.item.ItemStack.isSameItemSameTags(in, lastInput) || in.getCount() != lastInput.getCount();
-        boolean fuelChanged  = !net.minecraft.world.item.ItemStack.isSameItemSameTags(fu, lastFuel) || fu.getCount() != lastFuel.getCount();
-        if (inputChanged || fuelChanged) {
-            lastInput = in.copy();
-            lastFuel  = fu.copy();
-            // Recalcule la liste de recettes côté client pour le rendu (ne touche pas l'output)
-            this.menu.refreshRecipeList();
-        }
     }
 }
