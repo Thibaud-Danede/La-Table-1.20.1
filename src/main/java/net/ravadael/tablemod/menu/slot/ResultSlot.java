@@ -5,6 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
+import net.ravadael.tablemod.menu.AlchemyTableMenu;
 
 public class ResultSlot extends Slot {
     private final AlchemyTableBlockEntity blockEntity;
@@ -14,35 +15,36 @@ public class ResultSlot extends Slot {
         this.blockEntity = blockEntity;
     }
 
+    // ResultSlot.java
     @Override
-    public boolean mayPlace(ItemStack stack) {
-        return false; // slot d’output
-    }
-
-    @Override
-    public void onTake(Player player, ItemStack stack) {
-        // Côté serveur uniquement
-        if (!player.level().isClientSide) {
-            // Consomme 1 input et 1 fuel (adapte si tes coûts diffèrent)
+    public void onTake(Player player, ItemStack taken) {
+        if (!player.level().isClientSide && player.containerMenu instanceof AlchemyTableMenu m) {
+            // consommer 1 input + 1 fuel (adapte si besoin)
             blockEntity.removeItem(0, 1);
             blockEntity.removeItem(1, 1);
-
-            // Recalculer les recettes dispos + reposer le bon output
-            if (player.containerMenu instanceof net.ravadael.tablemod.menu.AlchemyTableMenu m) {
-                // Regénère ta liste (via slotsChanged) et réapplique l’index courant
-                m.slotsChanged(blockEntity); // déclenche updateAvailableRecipes() + selectRecipe(...)
-            }
-
             blockEntity.setChanged();
-        }
 
-        super.onTake(player, stack);
+            // remettre immédiatement la prochaine sortie si craft encore possible
+            m.refreshOutput();       // remet l’ItemStack dans result
+            m.broadcastChanges();    // sync client
+        }
+        super.onTake(player, taken);
     }
 
     @Override
-    public boolean mayPickup(Player player) {
-        // pickup seulement si un item réel est présent
-        return !this.getItem().isEmpty();
+    public boolean mayPlace(ItemStack stack) { return false; } // slot sortie: pas de dépôt
+
+
+
+    @Override
+    public boolean mayPickup(net.minecraft.world.entity.player.Player player) {
+        // le client peut “cliquer”, mais on ne valide que si le serveur dit OK
+        if (player.level().isClientSide) return true;
+
+        if (player.containerMenu instanceof net.ravadael.tablemod.menu.AlchemyTableMenu m) {
+            return m.canCraftOnce(); // ← interdit le ghost pickup
+        }
+        return false;
     }
 }
 

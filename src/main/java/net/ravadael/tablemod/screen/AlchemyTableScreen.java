@@ -190,18 +190,10 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         return mouseX >= x && mouseX < x + CELL_W && mouseY >= y && mouseY < y + CELL_H;
     }
 
-    private void onCellClicked(int globalIndex) {
-        if (globalIndex >= 0 && globalIndex < menu.getVisibleRecipes().size()) {
-            minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, globalIndex);
-            menu.getPlayer().level().playSound(
-                    null,
-                    menu.getPlayer().blockPosition(),
-                    SoundEvents.UI_STONECUTTER_SELECT_RECIPE,
-                    SoundSource.BLOCKS,
-                    1.0F,
-                    1.0F
-            );
-        }
+    private void onCellClicked(int localIndexInPage) {
+        int absolute = menu.getStartIndex() + localIndexInPage; // expose un getter si besoin
+        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, absolute);
+        // Mets aussi à jour l’état visuel local si tu veux surligner immédiatement
+        this.selectedIndex = absolute;
     }
-
 }
