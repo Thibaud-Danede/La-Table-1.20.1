@@ -86,10 +86,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     }
 
     private void updateRecipes() {
+        ItemStack inputStack = input.getItem(0); // ✅ THIS was missing
         this.recipes = level.getRecipeManager()
                 .getAllRecipesFor(AlchemyRecipeType.INSTANCE)
                 .stream()
                 .filter(r -> r.matches(input, level))
+                .filter(r -> !ItemStack.isSameItemSameTags(r.getResultItem(level.registryAccess()), inputStack))
                 .sorted(Comparator.comparing(r -> r.getResultItem(level.registryAccess()).getDisplayName().getString()))
                 .toList();
 
