@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 
@@ -73,9 +74,12 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
                 guiGraphics.blit(TEXTURE, x, y, 0, 166, 16, 16); // Default
             }
 
+            if (isHovered && index < recipes.size()) {
+                ItemStack resultStack = recipes.get(index).getResultItem(minecraft.level.registryAccess());
+                guiGraphics.renderTooltip(font, resultStack, mouseX, mouseY);
+            }
             guiGraphics.renderItem(recipes.get(index).getResultItem(minecraft.level.registryAccess()), x, y);
         }
-
     }
 
     @Override
@@ -88,7 +92,6 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -126,8 +129,4 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 }
-
-
-
-
 
