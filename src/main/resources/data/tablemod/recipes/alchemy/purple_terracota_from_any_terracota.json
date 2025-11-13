@@ -1,0 +1,12 @@
+{
+  "type": "tablemod:alchemy",
+  "ingredient": {
+    "item": "minecraft:terracotta"
+  },
+  "catalyst": {
+    "tag": "minecraft:bone_meal"
+  },
+  "result": {
+    "item": "minecraft:purple_terracotta"
+  }
+}
