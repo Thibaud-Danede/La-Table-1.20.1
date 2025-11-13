@@ -13,29 +13,26 @@ import net.minecraft.world.level.Level;
 
 public class AlchemyRecipe implements Recipe<Container> {
     private final ResourceLocation id;
-    private final Ingredient ingredient;
-    private final ItemStack result;
+    private final Ingredient input;
+    private final Ingredient catalyst;
+    private final ItemStack output;
 
-    public AlchemyRecipe(ResourceLocation id, Ingredient ingredient, ItemStack result) {
+    public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, ItemStack output) {
         this.id = id;
-        this.ingredient = ingredient;
-        this.result = result;
+        this.input = input;
+        this.catalyst = catalyst;
+        this.output = output;
     }
 
     @Override
     public boolean matches(Container container, Level level) {
-        ItemStack inputStack = container.getItem(0);
-        boolean result = ingredient.test(inputStack);
-        System.out.println("[AlchemyRecipe] Matching: " + inputStack + " => " + result);
-        System.out.println("[AlchemyRecipe] Ingredient: " + ingredient);
-
-        return result;
+        return input.test(container.getItem(0)) && catalyst.test(container.getItem(1));
     }
 
 
     @Override
     public ItemStack assemble(Container container, RegistryAccess pRegistryAccess) {
-        return result.copy();
+        return output.copy();
     }
 
     @Override
@@ -45,7 +42,7 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
-        return result;
+        return output;
     }
 
     @Override
@@ -66,7 +63,7 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     @Override
     public NonNullList<Ingredient> getIngredients() {
-        return NonNullList.of(Ingredient.EMPTY, ingredient);
+        return NonNullList.of(Ingredient.EMPTY, input);
     }
 
     @Override
@@ -75,8 +72,14 @@ public class AlchemyRecipe implements Recipe<Container> {
     }
 
     public ItemStack getResult() {
-        return this.result;
+        return this.output;
     }
 
+    public Ingredient getInput() {
+        return input;
+    }
 
+    public Ingredient getCatalyst() {
+        return catalyst;
+    }
 }

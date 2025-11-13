@@ -13,23 +13,28 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
 
     @Override
     public AlchemyRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-        Ingredient ingredient = Ingredient.fromJson(json.get("ingredient"));
-        ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-        return new AlchemyRecipe(recipeId, ingredient, result);
+        Ingredient input = Ingredient.fromJson(json.get("ingredient"));
+        Ingredient catalyst = Ingredient.fromJson(json.get("catalyst")); // <-- Add this
+        ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
+
+        return new AlchemyRecipe(recipeId, input, catalyst, output);
+
     }
 
     @Override
     public AlchemyRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-        Ingredient ingredient = Ingredient.fromNetwork(buffer);
+        Ingredient input = Ingredient.fromNetwork(buffer);
+        Ingredient catalyst = Ingredient.fromNetwork(buffer); // <-- read second ingredient
         ItemStack result = buffer.readItem();
-        return new AlchemyRecipe(recipeId, ingredient, result);
+        return new AlchemyRecipe(recipeId, input, catalyst, result);
     }
+
 
     @Override
     public void toNetwork(FriendlyByteBuf buffer, AlchemyRecipe recipe) {
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            ingredient.toNetwork(buffer);
-        }
+        recipe.getInput().toNetwork(buffer);      // <-- must match read order
+        recipe.getCatalyst().toNetwork(buffer);   // <-- new line for catalyst
         buffer.writeItem(recipe.getResult());
     }
+
 }

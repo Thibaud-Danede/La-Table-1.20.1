@@ -5,5 +5,8 @@
   },
   "result": {
     "item": "minecraft:spruce_planks"
+  },
+  "catalyst": {
+    "item": "minecraft:bone_meal"
   }
 }

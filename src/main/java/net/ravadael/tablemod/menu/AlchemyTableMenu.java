@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class AlchemyTableMenu extends AbstractContainerMenu {
-    private final SimpleContainer input = new SimpleContainer(1);
+    private final SimpleContainer input = new SimpleContainer(2);
     private final SimpleContainer result = new SimpleContainer(1);
     private final ContainerLevelAccess access;
     private final Level level;
@@ -41,7 +41,16 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(level, pos);
 
         // Input slot
-        this.addSlot(new Slot(input, 0, 20, 33) {
+        this.addSlot(new Slot(input, 0, 20, 23) {
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                slotsChanged(input);
+            }
+        });
+
+        //Catalyst slot
+        this.addSlot(new Slot(input, 1, 20, 42) {
             @Override
             public void setChanged() {
                 super.setChanged();
@@ -59,10 +68,21 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             @Override
             public void onTake(Player player, ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
-                input.getItem(0).shrink(1);
-                if (input.getItem(0).isEmpty()) {
+
+                // Consume input (slot 0)
+                ItemStack inputStack = input.getItem(0);
+                inputStack.shrink(1);
+                if (inputStack.isEmpty()) {
                     input.setItem(0, ItemStack.EMPTY);
                 }
+
+                // Optional: consume catalyst (slot 1)
+                ItemStack catalystStack = input.getItem(1);
+                catalystStack.shrink(1);
+                if (catalystStack.isEmpty()) {
+                    input.setItem(1, ItemStack.EMPTY);
+                }
+
                 slotsChanged(input);
                 super.onTake(player, stack);
             }
@@ -146,7 +166,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
 
-            if (index == 1) { // Output slot
+            if (index == 2) { // Output slot
                 if (selectedRecipeIndex < 0 || selectedRecipeIndex >= recipes.size()) {
                     return ItemStack.EMPTY;
                 }
@@ -159,12 +179,21 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 ItemStack totalCrafted = ItemStack.EMPTY;
 
                 for (int i = 0; i < maxCrafts; i++) {
-                    if (!this.moveItemStackTo(outputStack.copy(), 2, 38, true)) break;
+                    if (!this.moveItemStackTo(outputStack.copy(), 3, 39, true)) break;
 
+                    // Consume input
                     inputStack.shrink(1);
                     if (inputStack.isEmpty()) {
                         input.setItem(0, ItemStack.EMPTY);
                     }
+
+                    // Consume catalyst
+                    ItemStack catalystStack = input.getItem(1);
+                    catalystStack.shrink(1);
+                    if (catalystStack.isEmpty()) {
+                        input.setItem(1, ItemStack.EMPTY);
+                    }
+
 
                     if (totalCrafted.isEmpty()) {
                         totalCrafted = outputStack.copy();

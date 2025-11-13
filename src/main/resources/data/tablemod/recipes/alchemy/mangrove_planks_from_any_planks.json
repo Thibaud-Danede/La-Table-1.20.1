@@ -5,5 +5,8 @@
   },
   "result": {
     "item": "minecraft:mangrove_planks"
+  },
+  "catalyst": {
+    "item": "minecraft:bone_meal"
   }
 }

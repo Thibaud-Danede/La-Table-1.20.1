@@ -1,24 +1,19 @@
 package net.ravadael.tablemod.block.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
-import net.ravadael.tablemod.menu.ModMenuTypes;
 
 public class AlchemyTableBlockEntity extends BlockEntity implements MenuProvider {
-    private final SimpleContainer inventory = new SimpleContainer(1);
+    private final SimpleContainer inventory = new SimpleContainer(3);
 
     public AlchemyTableBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ALCHEMY_TABLE_BE.get(), pos, state);
