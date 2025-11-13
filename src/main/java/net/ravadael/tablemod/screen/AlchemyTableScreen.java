@@ -62,6 +62,17 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
             int x = leftPos + 60 + col * buttonSize;
             int y = topPos + 10 + row * buttonSize;
 
+            int selectedIndex = menu.getSelectedRecipeIndex();
+            boolean isHovered = mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16;
+
+            if (index == selectedIndex) {
+                guiGraphics.blit(TEXTURE, x, y, 0, 184, 16, 16); // Selected
+            } else if (isHovered) {
+                guiGraphics.blit(TEXTURE, x, y, 0, 202, 16, 16); // Hovered
+            } else {
+                guiGraphics.blit(TEXTURE, x, y, 0, 166, 16, 16); // Default
+            }
+
             guiGraphics.renderItem(recipes.get(index).getResultItem(minecraft.level.registryAccess()), x, y);
         }
 

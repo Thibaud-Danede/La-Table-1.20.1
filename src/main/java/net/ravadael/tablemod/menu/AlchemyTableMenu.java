@@ -251,4 +251,9 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             this.clearContainer(player, this.input);
         });
     }
+
+    public int getSelectedRecipeIndex() {
+        return this.selectedRecipeIndex;
+    }
+
 }
