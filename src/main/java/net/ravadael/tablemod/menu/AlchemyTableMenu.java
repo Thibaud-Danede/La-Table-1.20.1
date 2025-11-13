@@ -4,13 +4,17 @@ package net.ravadael.tablemod.menu;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
@@ -26,6 +30,10 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     private final Level level;
     private List<AlchemyRecipe> recipes;
     private int selectedRecipeIndex = -1;
+
+    private Item lastInputItem = Items.AIR;
+    private Item lastCatalystItem = Items.AIR;
+
 
     public AlchemyTableMenu(int id, Inventory inv, FriendlyByteBuf buf) {
         this(id, inv, inv.player.level(), buf.readBlockPos());
@@ -84,6 +92,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 }
 
                 slotsChanged(input);
+                player.playSound(SoundEvents.BREWING_STAND_BREW, 0.3F, 1.0F);
                 super.onTake(player, stack);
             }
         });
@@ -99,7 +108,16 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public void slotsChanged(net.minecraft.world.Container container) {
+    public void slotsChanged(Container container) {
+        Item currentInputItem = input.getItem(0).getItem();
+        Item currentCatalystItem = input.getItem(1).getItem();
+
+        if (currentInputItem != lastInputItem || currentCatalystItem != lastCatalystItem) {
+            this.selectedRecipeIndex = -1; // Only reset if actual items changed
+            lastInputItem = currentInputItem;
+            lastCatalystItem = currentCatalystItem;
+        }
+
         if (container == this.input) {
             updateRecipes();
         }

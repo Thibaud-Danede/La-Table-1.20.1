@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
@@ -51,7 +52,8 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
         int buttonsPerRow = 4;
         int visibleRows = 3;
-        int buttonSize = 18;
+        int buttonSpacingX = 16;
+        int buttonSpacingY = 18;
         int startIndex = scrollOffset * buttonsPerRow;
 
         for (int i = 0; i < visibleRows * buttonsPerRow; i++) {
@@ -60,25 +62,25 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
             int row = i / buttonsPerRow;
             int col = i % buttonsPerRow;
-            int x = leftPos + 60 + col * buttonSize;
-            int y = topPos + 10 + row * buttonSize;
+            int x = leftPos + 52 + col * buttonSpacingX;
+            int y = topPos + 15 + row * buttonSpacingY;
 
             int selectedIndex = menu.getSelectedRecipeIndex();
             boolean isHovered = mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16;
 
             if (index == selectedIndex) {
-                guiGraphics.blit(TEXTURE, x, y, 0, 184, 16, 16); // Selected
+                guiGraphics.blit(TEXTURE, x, y, 0, 184, 16, 18); // Selected
             } else if (isHovered) {
-                guiGraphics.blit(TEXTURE, x, y, 0, 202, 16, 16); // Hovered
+                guiGraphics.blit(TEXTURE, x, y, 0, 202, 16, 18); // Hovered
             } else {
-                guiGraphics.blit(TEXTURE, x, y, 0, 166, 16, 16); // Default
+                guiGraphics.blit(TEXTURE, x, y, 0, 166, 16, 18); // Default
             }
 
             if (isHovered && index < recipes.size()) {
                 ItemStack resultStack = recipes.get(index).getResultItem(minecraft.level.registryAccess());
                 guiGraphics.renderTooltip(font, resultStack, mouseX, mouseY);
             }
-            guiGraphics.renderItem(recipes.get(index).getResultItem(minecraft.level.registryAccess()), x, y);
+            guiGraphics.renderItem(recipes.get(index).getResultItem(minecraft.level.registryAccess()), x, y+1);
         }
     }
 
@@ -98,19 +100,21 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
         int buttonsPerRow = 4;
-        int buttonSize = 18;
+        int buttonSpacingX = 16;
+        int buttonSpacingY = 17;
         int startIndex = scrollOffset * buttonsPerRow;
 
         for (int i = 0; i < Math.min(recipes.size() - startIndex, 12); i++) {
             int index = startIndex + i;
             int row = i / buttonsPerRow;
             int col = i % buttonsPerRow;
-            int x = leftPos + 60 + col * buttonSize;
-            int y = topPos + 10 + row * buttonSize;
+            int x = leftPos + 52 + col * buttonSpacingX;
+            int y = topPos + 15 + row * buttonSpacingY;
 
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 menu.clientSelectRecipe(index); // correct index
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
+                minecraft.player.playSound(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 0.3F, 1.0F);//sound line
                 return true;
             }
         }
