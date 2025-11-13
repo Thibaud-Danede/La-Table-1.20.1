@@ -16,6 +16,7 @@ import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
 import net.ravadael.tablemod.recipe.ModRecipes;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class AlchemyTableMenu extends AbstractContainerMenu {
@@ -89,6 +90,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 .getAllRecipesFor(AlchemyRecipeType.INSTANCE)
                 .stream()
                 .filter(r -> r.matches(input, level))
+                .sorted(Comparator.comparing(r -> r.getResultItem(level.registryAccess()).getDisplayName().getString()))
                 .toList();
 
         if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {
@@ -110,6 +112,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             assembleRecipe();
         }
     }
+    public void clientSelectRecipe(int index) {
+        this.selectedRecipeIndex = index;
+        assembleRecipe();
+    }
+
+
 
     private void assembleRecipe() {
         if (selectedRecipeIndex >= 0 && selectedRecipeIndex < recipes.size()) {

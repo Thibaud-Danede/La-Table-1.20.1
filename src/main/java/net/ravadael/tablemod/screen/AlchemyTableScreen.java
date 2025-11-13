@@ -39,7 +39,6 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
             guiGraphics.renderItem(recipes.get(i).getResultItem(minecraft.level.registryAccess()), x, y);
         }
-
     }
 
     @Override
@@ -68,13 +67,12 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
             int y = topPos + 10 + row * buttonSize;
 
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i);
-                menu.setSelectedRecipeIndex(i);
+
+                menu.clientSelectRecipe(i); // for GUI update
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, i); // for server logic
                 return true;
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
-
-
 }
