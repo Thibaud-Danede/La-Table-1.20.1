@@ -27,7 +27,7 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
 
         // Render result preview
         List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
-        System.out.println("[AlchemyScreen] Recipes to render: " + menu.getCurrentRecipes().size());
+        //System.out.println("[AlchemyScreen] Recipes to render: " + menu.getCurrentRecipes().size());
         int buttonsPerRow = 4;
         int buttonSize = 18;
 

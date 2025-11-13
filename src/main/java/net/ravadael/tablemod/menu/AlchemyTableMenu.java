@@ -175,7 +175,11 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 ItemStack inputStack = input.getItem(0);
                 ItemStack outputStack = recipe.getResultItem(level.registryAccess()).copy();
 
-                int maxCrafts = Math.min(inputStack.getCount(), outputStack.getMaxStackSize());
+                int maxCrafts = Math.min(
+                        Math.min(inputStack.getCount(), input.getItem(1).getCount()), // input & catalyst
+                        outputStack.getMaxStackSize() // limit to result stack size
+                );
+
                 ItemStack totalCrafted = ItemStack.EMPTY;
 
                 for (int i = 0; i < maxCrafts; i++) {
@@ -194,6 +198,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                         input.setItem(1, ItemStack.EMPTY);
                     }
 
+                    slotsChanged(input);
 
                     if (totalCrafted.isEmpty()) {
                         totalCrafted = outputStack.copy();
