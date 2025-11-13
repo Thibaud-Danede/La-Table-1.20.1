@@ -199,4 +199,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     public List<AlchemyRecipe> getCurrentRecipes() {
         return recipes;
     }
+
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+        this.access.execute((level, pos) -> {
+            this.clearContainer(player, this.input);
+        });
+    }
 }
