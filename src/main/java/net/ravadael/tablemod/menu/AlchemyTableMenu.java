@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
-import net.ravadael.tablemod.recipe.ModRecipes;
 
 import java.util.ArrayList;
 import java.util.Comparator;

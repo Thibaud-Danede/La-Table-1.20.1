@@ -1,6 +1,5 @@
 package net.ravadael.tablemod;
 
-import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -13,13 +12,11 @@ import net.ravadael.tablemod.item.ModCreativeModTabs;
 import net.ravadael.tablemod.item.ModItems;
 import net.ravadael.tablemod.network.ModMessages;
 import net.ravadael.tablemod.recipe.ModRecipes;
-import org.slf4j.Logger;
 import net.ravadael.tablemod.menu.ModMenuTypes;
 
 @Mod(TableMod.MOD_ID)
 public class TableMod {
     public static final String MOD_ID = "tablemod";
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     // (Option conseillée : constructeur sans argument)
     public TableMod() {
