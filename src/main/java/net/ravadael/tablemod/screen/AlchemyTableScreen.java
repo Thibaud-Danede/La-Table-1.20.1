@@ -1,6 +1,6 @@
 package net.ravadael.tablemod.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -9,128 +9,262 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
+import net.ravadael.tablemod.network.ModMessages;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu> {
 
-    private static final int MAX_VISIBLE_RECIPES = 12;
-    private static final int RECIPES_PER_ROW = 4;
-    private static final int RECIPE_BUTTON_SIZE = 18;
+    private static final ResourceLocation TEXTURE =
+            new ResourceLocation("tablemod", "textures/gui/alchemy_table.png");
+
+    // Grid settings
+    private static final int COLS = 4;
+    private static final int ROWS = 3;
+    private static final int MAX_VISIBLE = COLS * ROWS;
+
+    // Button layout
+    private static final int GRID_X = 52;
+    private static final int GRID_Y = 15;
+    private static final int BTN_W = 16;
+    private static final int BTN_H = 18;
+    private static final int SPACE_X = 16;
+    private static final int SPACE_Y = 18;
+
     private int scrollOffset = 0;
-    private boolean isScrolling = false;
-    private double scrollAmount = 0;
+    private int selectedIndex = -1;
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation("tablemod", "textures/gui/alchemy_table.png");
+    private boolean isScrolling = false;   // dragging scrollbar
 
-    public AlchemyTableScreen(AlchemyTableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+    private ItemStack lastInput = ItemStack.EMPTY;
+
+    public AlchemyTableScreen(AlchemyTableMenu menu, Inventory inv, Component title) {
+        super(menu, inv, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
     }
 
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    // -------------------------------------------
+    //  COLLECT ALL RESULTS (filtered list)
+    // -------------------------------------------
+    private List<ItemStack> collectResults() {
+        ItemStack input = menu.getInputItem();
+        List<ItemStack> list = new ArrayList<>();
 
-        // Render result preview
-        List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
-        int totalRows = (int) Math.ceil(recipes.size() / (double) RECIPES_PER_ROW);
-        int maxScroll = Math.max(0, totalRows - 3); // 3 rows visible (12 recipes)
+        for (AlchemyRecipe r : menu.getCurrentRecipes()) {
+            list.addAll(r.getFilteredResults(input));
+        }
+
+        return list;
+    }
+
+    // -------------------------------------------
+    // LOGIC REFRESH (called every tick)
+    // -------------------------------------------
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+
+        ItemStack inp = menu.getInputItem();
+        if (!ItemStack.isSameItemSameTags(inp, lastInput)) {
+            selectedIndex = -1;
+            scrollOffset = 0;
+            lastInput = inp.copy();
+        }
+
+        List<ItemStack> results = collectResults();
+        int total = results.size();
+
+        int totalRows = (int)Math.ceil(total / (double)COLS);
+        int maxScroll = Math.max(0, totalRows - ROWS);
+
+        if (scrollOffset > maxScroll)
+            scrollOffset = maxScroll;
+
+        if (selectedIndex >= total)
+            selectedIndex = -1;
+    }
+
+    // -------------------------------------------
+    //  RENDER BACKGROUND + GRID
+    // -------------------------------------------
+    @Override
+    protected void renderBg(GuiGraphics gfx, float partialTicks, int mouseX, int mouseY) {
+        gfx.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+
+        List<ItemStack> results = collectResults();
+        int count = results.size();
+        int totalRows = (int)Math.ceil(count / (double)COLS);
+        int maxScroll = Math.max(0, totalRows - ROWS);
+
+        // -------------------------------------------
+        // Scrollbar
+        // -------------------------------------------
+        int barX = leftPos + 119;
+        int barY = topPos + 15;
 
         if (maxScroll > 0) {
-            int scrollbarX = leftPos + 119;
-            int scrollbarY = topPos + 15 + (int)(41.0 * scrollOffset / maxScroll);
-            guiGraphics.blit(TEXTURE, scrollbarX, scrollbarY, 176, 0, 12, 15);
+            int knobY = barY + (int)(41 * scrollOffset / (double)maxScroll);
+            gfx.blit(TEXTURE, barX, knobY, 176, 0, 12, 15);
         } else {
-            guiGraphics.blit(TEXTURE, leftPos + 119, topPos + 15, 188, 0, 12, 15);
+            gfx.blit(TEXTURE, barX, barY, 188, 0, 12, 15);
         }
 
-        //System.out.println("[AlchemyScreen] Recipes to render: " + menu.getCurrentRecipes().size());
+        // -------------------------------------------
+        // Render buttons
+        // -------------------------------------------
+        int start = scrollOffset * COLS;
 
-        int buttonsPerRow = 4;
-        int visibleRows = 3;
-        int buttonSpacingX = 16;
-        int buttonSpacingY = 18;
-        int startIndex = scrollOffset * buttonsPerRow;
+        for (int i = 0; i < MAX_VISIBLE; i++) {
+            int idx = start + i;
+            if (idx >= count) break;
 
-        for (int i = 0; i < visibleRows * buttonsPerRow; i++) {
-            int index = startIndex + i;
-            if (index >= recipes.size()) break;
+            int row = i / COLS;
+            int col = i % COLS;
 
-            int row = i / buttonsPerRow;
-            int col = i % buttonsPerRow;
-            int x = leftPos + 52 + col * buttonSpacingX;
-            int y = topPos + 15 + row * buttonSpacingY;
+            int x = leftPos + GRID_X + col * SPACE_X;
+            int y = topPos + GRID_Y + row * SPACE_Y;
 
-            int selectedIndex = menu.getSelectedRecipeIndex();
-            boolean isHovered = mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16;
+            boolean hovered = mouseX >= x && mouseX < x + BTN_W && mouseY >= y && mouseY < y + BTN_H;
+            boolean selected = idx == selectedIndex;
 
-            if (index == selectedIndex) {
-                guiGraphics.blit(TEXTURE, x, y, 0, 184, 16, 18); // Selected
-            } else if (isHovered) {
-                guiGraphics.blit(TEXTURE, x, y, 0, 202, 16, 18); // Hovered
-            } else {
-                guiGraphics.blit(TEXTURE, x, y, 0, 166, 16, 18); // Default
-            }
+            // Button states (normal / hover / selected)
+            if (selected)
+                gfx.blit(TEXTURE, x, y, 0, 184, BTN_W, BTN_H);
+            else if (hovered)
+                gfx.blit(TEXTURE, x, y, 0, 202, BTN_W, BTN_H);
+            else
+                gfx.blit(TEXTURE, x, y, 0, 166, BTN_W, BTN_H);
 
-            if (isHovered && index < recipes.size()) {
-                ItemStack resultStack = recipes.get(index).getResultItem(minecraft.level.registryAccess());
-                guiGraphics.renderTooltip(font, resultStack, mouseX, mouseY);
-            }
-            guiGraphics.renderItem(recipes.get(index).getResultItem(minecraft.level.registryAccess()), x, y+1);
+            ItemStack stack = results.get(idx);
+            gfx.renderItem(stack, x, y + 1);
+
+            if (hovered)
+                gfx.renderTooltip(font, stack, mouseX, mouseY);
         }
     }
 
+
+    // -------------------------------------------
+    // RENDER TEXT + VANILLA TOOLTIP SUPPORT
+    // -------------------------------------------
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 8, 6, 4210752, false);
-        guiGraphics.drawString(font, playerInventoryTitle, 8, 72, 4210752, false);
+    protected void renderLabels(GuiGraphics gfx, int mouseX, int mouseY) {
+        gfx.drawString(font, title, 8, 6, 0x404040, false);
+        gfx.drawString(font, playerInventoryTitle, 8, 72, 0x404040, false);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(gfx);
+        super.render(gfx, mouseX, mouseY, partialTicks);
+
+        // 🔥 REQUIRED FOR TOOLTIP SUPPORT OUTSIDE THE GRID
+        this.renderTooltip(gfx, mouseX, mouseY);
     }
 
+
+    // -------------------------------------------
+    // CLICK HANDLER (item selection)
+    // -------------------------------------------
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        List<AlchemyRecipe> recipes = menu.getCurrentRecipes();
-        int buttonsPerRow = 4;
-        int buttonSpacingX = 16;
-        int buttonSpacingY = 17;
-        int startIndex = scrollOffset * buttonsPerRow;
+    public boolean mouseClicked(double mx, double my, int button) {
+        if (button == 0) {
 
-        for (int i = 0; i < Math.min(recipes.size() - startIndex, 12); i++) {
-            int index = startIndex + i;
-            int row = i / buttonsPerRow;
-            int col = i % buttonsPerRow;
-            int x = leftPos + 52 + col * buttonSpacingX;
-            int y = topPos + 15 + row * buttonSpacingY;
-
-            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                menu.clientSelectRecipe(index); // correct index
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
-                minecraft.player.playSound(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 0.3F, 1.0F);//sound line
+            // Scrollbar click detection
+            if (clickScrollbar(mx, my))
                 return true;
+
+            List<ItemStack> results = collectResults();
+            int count = results.size();
+            int start = scrollOffset * COLS;
+
+            for (int i = 0; i < MAX_VISIBLE; i++) {
+                int idx = start + i;
+                if (idx >= count) break;
+
+                int row = i / COLS;
+                int col = i % COLS;
+
+                int x = leftPos + GRID_X + col * SPACE_X;
+                int y = topPos + GRID_Y + row * SPACE_Y;
+
+                if (mx >= x && mx < x + BTN_W && my >= y && my < y + BTN_H) {
+
+                    selectedIndex = idx;
+
+                    ItemStack chosen = results.get(idx).copy();
+                    ModMessages.sendSelectResult(chosen);
+
+                    if (minecraft.player != null)
+                        minecraft.player.playSound(SoundEvents.UI_STONECUTTER_SELECT_RECIPE,
+                                0.3F, 1.0F);
+
+                    return true;
+                }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+
+        return super.mouseClicked(mx, my, button);
+    }
+
+    // -------------------------------------------
+    // SCROLLBAR DRAGGING
+    // -------------------------------------------
+    private boolean clickScrollbar(double mx, double my) {
+        int barX = leftPos + 119;
+        int barY = topPos + 15;
+
+        if (mx >= barX && mx < barX + 12 && my >= barY && my < barY + 56) {
+            isScrolling = true;
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        int recipeCount = menu.getCurrentRecipes().size();
-        int rows = (int) Math.ceil(recipeCount / (double) RECIPES_PER_ROW);
-        int maxScroll = Math.max(0, rows - 3); // 3 visible rows
+    public boolean mouseReleased(double mx, double my, int button) {
+        isScrolling = false;
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (!isScrolling) return false;
+
+        List<ItemStack> results = collectResults();
+        int count = results.size();
+
+        int totalRows = (int)Math.ceil(count / (double)COLS);
+        int maxScroll = Math.max(0, totalRows - ROWS);
+
+        if (maxScroll <= 0) return false;
+
+        double barY = my - (topPos + 15);
+        barY = Math.max(0, Math.min(barY, 41));
+
+        scrollOffset = (int)Math.round((barY / 41D) * maxScroll);
+        return true;
+    }
+
+    // -------------------------------------------
+    // MOUSE SCROLLWHEEL
+    // -------------------------------------------
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        List<ItemStack> results = collectResults();
+        int total = results.size();
+
+        int totalRows = (int)Math.ceil(total / (double)COLS);
+        int maxScroll = Math.max(0, totalRows - ROWS);
 
         if (maxScroll > 0) {
-            scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - delta));
+            scrollOffset -= (int) delta;
+            scrollOffset = Math.max(0, Math.min(scrollOffset, maxScroll));
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+
+        return true;
     }
 }
-

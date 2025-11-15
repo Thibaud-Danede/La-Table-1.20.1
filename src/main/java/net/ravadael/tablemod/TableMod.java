@@ -11,6 +11,7 @@ import net.ravadael.tablemod.block.ModBlocks;
 import net.ravadael.tablemod.block.entity.ModBlockEntities;
 import net.ravadael.tablemod.item.ModCreativeModTabs;
 import net.ravadael.tablemod.item.ModItems;
+import net.ravadael.tablemod.network.ModMessages;
 import net.ravadael.tablemod.recipe.ModRecipes;
 import org.slf4j.Logger;
 import net.ravadael.tablemod.menu.ModMenuTypes;
@@ -37,6 +38,7 @@ public class TableMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
+        ModMessages.register();
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
