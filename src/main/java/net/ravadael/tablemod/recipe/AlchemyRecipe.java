@@ -8,6 +8,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -42,9 +43,28 @@ public class AlchemyRecipe implements Recipe<Container> {
     // === Vanilla-required methods ===
 
     @Override
-    public boolean matches(Container container, net.minecraft.world.level.Level level) {
-        return input.test(container.getItem(0)) &&
-                catalyst.test(container.getItem(1));
+    public boolean matches(Container container, Level level) {
+        ItemStack inputStack = container.getItem(0);
+        ItemStack catalystStack = container.getItem(1);
+
+        // Vérifie l'input
+        if (!input.test(inputStack)) {
+            return false;
+        }
+
+        // Si catalyst vide (recette sans catalyst)
+        if (catalyst == Ingredient.EMPTY || catalyst.getItems().length == 0) {
+
+            // Si le joueur met une catalyst alors que la recette n'en a pas → ne match PAS
+            if (!catalystStack.isEmpty()) {
+                return false;
+            }
+
+            return true; // OK, recette sans catalyst
+        }
+
+        // Recette AVEC catalyst → catalyst requise
+        return catalyst.test(catalystStack);
     }
 
     @Override

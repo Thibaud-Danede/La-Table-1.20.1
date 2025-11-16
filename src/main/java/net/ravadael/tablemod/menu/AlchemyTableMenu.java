@@ -46,7 +46,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         this.level = level;
         this.access = ContainerLevelAccess.create(level, pos);
 
-        // INPUT
+        // INPUT SLOT
         this.addSlot(new Slot(input, 0, 20, 23) {
             @Override
             public void setChanged() {
@@ -55,7 +55,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             }
         });
 
-        // CATALYST
+        // CATALYST SLOT (PEUT ÊTRE VIDE)
         this.addSlot(new Slot(input, 1, 20, 42) {
             @Override
             public void setChanged() {
@@ -64,7 +64,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             }
         });
 
-        // OUTPUT
+        // OUTPUT SLOT
         this.addSlot(new Slot(result, 0, 143, 33) {
             @Override public boolean mayPlace(ItemStack stack) { return false; }
 
@@ -72,26 +72,29 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
 
+                // Consume input
                 ItemStack in = input.getItem(0);
                 in.shrink(1);
                 if (in.isEmpty()) input.setItem(0, ItemStack.EMPTY);
 
-                ItemStack cat = input.getItem(1);
-                cat.shrink(1);
-                if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
+                // Consume catalyst ONLY IF RECIPE REQUIRES ONE
+                AlchemyRecipe recipe = recipes.isEmpty() ? null : recipes.get(0);
+                if (recipe != null && !recipe.getCatalyst().isEmpty()) {
+                    ItemStack cat = input.getItem(1);
+                    cat.shrink(1);
+                    if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
+                }
 
-                // 🔥 FIX : recalcul complet dès qu’un stack change
                 updateRecipes();
-
-                // Re-assembler la sélection si encore valide
                 assembleSelectedOutput();
 
                 player.playSound(SoundEvents.BREWING_STAND_BREW, 0.3F, 1.0F);
+
                 super.onTake(player, stack);
             }
         });
 
-        // INVENTAIRE JOUEUR
+        // INVENTORY + HOTBAR
         for (int row = 0; row < 3; ++row)
             for (int col = 0; col < 9; ++col)
                 this.addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -119,12 +122,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         updateRecipes();
     }
 
+    /** RECHERCHE DES RECETTES POSSIBLES */
     private void updateRecipes() {
         ItemStack inp = input.getItem(0);
-        ItemStack cat = input.getItem(1);
 
-        // Si un slot est vide → aucune recette
-        if (inp.isEmpty() || cat.isEmpty()) {
+        // Input vide = aucune recette
+        if (inp.isEmpty()) {
             recipes = List.of();
             selectedOutput = ItemStack.EMPTY;
             result.setItem(0, ItemStack.EMPTY);
@@ -157,9 +160,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         }
 
         ItemStack inp = input.getItem(0);
-        ItemStack cat = input.getItem(1);
-
-        if (inp.isEmpty() || cat.isEmpty()) {
+        if (inp.isEmpty()) {
             selectedOutput = ItemStack.EMPTY;
             result.setItem(0, ItemStack.EMPTY);
             broadcastChanges();
@@ -202,9 +203,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         ItemStack stackInSlot = slot.getItem();
         result = stackInSlot.copy();
 
-        // --------------------------------------------------
-        // 1. OUTPUT SLOT SHIFT-CLICK (index == 2)
-        // --------------------------------------------------
+        // OUTPUT SHIFT-CLICK
         if (index == 2) {
 
             if (selectedOutput.isEmpty())
@@ -214,14 +213,19 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             ItemStack inp = input.getItem(0);
             ItemStack cat = input.getItem(1);
 
-            int maxCrafts = Math.min(inp.getCount(), cat.getCount());
+            int maxCrafts = inp.getCount();
+
+            // Si catalyst obligatoire
+            if (!recipes.isEmpty() && !recipes.get(0).getCatalyst().isEmpty()) {
+                maxCrafts = Math.min(maxCrafts, cat.getCount());
+            }
+
             maxCrafts = Math.min(maxCrafts, out.getMaxStackSize());
 
             boolean crafted = false;
 
             for (int i = 0; i < maxCrafts; i++) {
 
-                // Cannot push to inventory
                 if (!this.moveItemStackTo(out.copy(), 3, 39, true))
                     break;
 
@@ -229,57 +233,42 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 inp.shrink(1);
                 if (inp.isEmpty()) input.setItem(0, ItemStack.EMPTY);
 
-                // Consume catalyst
-                cat.shrink(1);
-                if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
+                // Consume catalyst if needed
+                if (!recipes.isEmpty() && !recipes.get(0).getCatalyst().isEmpty()) {
+                    cat.shrink(1);
+                    if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
+                }
 
                 crafted = true;
             }
 
             if (crafted && player != null)
-                level.playSound(
-                        null,                                     // null = tous les joueurs proches l'entendent
-                        player.getX(),
-                        player.getY(),
-                        player.getZ(),
+                level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.BREWING_STAND_BREW,
-                        net.minecraft.sounds.SoundSource.BLOCKS,  // stonecutter uses BLOCKS
-                        0.3F,
-                        1.0F
-                );
+                        net.minecraft.sounds.SoundSource.BLOCKS, 0.3F, 1.0F);
 
-
-            // Refresh recipes and output
             updateRecipes();
             assembleSelectedOutput();
 
             return result;
         }
 
-        // --------------------------------------------------
-        // 2. MOVE FROM INPUT / CATALYST SLOTS → INVENTORY
-        // --------------------------------------------------
+        // MOVE FROM INPUT SLOTS → INVENTORY
         if (index < 2) {
             if (!this.moveItemStackTo(stackInSlot, 3, 39, true))
                 return ItemStack.EMPTY;
         }
 
-        // --------------------------------------------------
-        // 3. MOVE FROM INVENTORY → INPUT / CATALYST
-        // --------------------------------------------------
+        // INVENTORY → INPUT
         else {
-            // Move to input (slot 0) first
+            // Try input first
             if (!this.moveItemStackTo(stackInSlot, 0, 1, false)) {
-
-                // Move to catalyst (slot 1)
+                // Then catalyst
                 if (!this.moveItemStackTo(stackInSlot, 1, 2, false))
                     return ItemStack.EMPTY;
             }
         }
 
-        // --------------------------------------------------
-        // Final slot cleanup
-        // --------------------------------------------------
         if (stackInSlot.isEmpty()) slot.set(ItemStack.EMPTY);
         else slot.setChanged();
 
@@ -288,11 +277,14 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         return result;
     }
 
-
     @Override
     public boolean stillValid(Player player) {
         return this.access.evaluate(
-                (level, pos) -> player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64,
+                (level, pos) -> player.distanceToSqr(
+                        pos.getX() + 0.5D,
+                        pos.getY() + 0.5D,
+                        pos.getZ() + 0.5D
+                ) <= 64,
                 true
         );
     }

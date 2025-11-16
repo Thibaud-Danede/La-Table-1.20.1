@@ -1,10 +1,10 @@
-
 package net.ravadael.tablemod.recipe;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -19,50 +19,83 @@ import java.util.List;
 
 public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> {
 
+    // --------------------------------------------------------
+    // JSON → Recipe
+    // --------------------------------------------------------
     @Override
     public AlchemyRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
         Ingredient input = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"));
-        Ingredient catalyst = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "catalyst"));
 
+        // Catalyst OPTIONNELLE
+        Ingredient catalyst =
+                json.has("catalyst")
+                        ? Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "catalyst"))
+                        : Ingredient.EMPTY;
+
+        // Results
         List<ItemStack> results = new ArrayList<>();
 
         if (json.has("results")) {
-            JsonArray resultArray = GsonHelper.getAsJsonArray(json, "results");
-            for (JsonElement element : resultArray) {
-                results.add(ShapedRecipe.itemStackFromJson(GsonHelper.convertToJsonObject(element, "result entry")));
+            JsonArray arr = GsonHelper.getAsJsonArray(json, "results");
+            for (JsonElement e : arr) {
+                results.add(
+                        ShapedRecipe.itemStackFromJson(GsonHelper.convertToJsonObject(e, "result entry"))
+                );
             }
-        } else if (json.has("result")) {
-            ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-            results.add(result);
-        } else {
+        }
+        else if (json.has("result")) {
+            results.add(
+                    ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"))
+            );
+        }
+        else {
             throw new JsonParseException("Alchemy recipe must have either 'result' or 'results'");
         }
 
         return new AlchemyRecipe(recipeId, input, catalyst, results);
     }
 
+    // --------------------------------------------------------
+    // Network → Recipe
+    // --------------------------------------------------------
     @Override
-    public @Nullable AlchemyRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-        Ingredient input = Ingredient.fromNetwork(buffer);
-        Ingredient catalyst = Ingredient.fromNetwork(buffer);
+    public @Nullable AlchemyRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buf) {
 
-        int count = buffer.readInt();
+        Ingredient input = Ingredient.fromNetwork(buf);
+
+        // Catalyst optionnelle : on lit un boolean pour savoir si une catalyst existe
+        boolean hasCatalyst = buf.readBoolean();
+        Ingredient catalyst = hasCatalyst ? Ingredient.fromNetwork(buf) : Ingredient.EMPTY;
+
+        int count = buf.readInt();
         List<ItemStack> results = new ArrayList<>();
+
         for (int i = 0; i < count; i++) {
-            results.add(buffer.readItem());
+            results.add(buf.readItem());
         }
 
         return new AlchemyRecipe(recipeId, input, catalyst, results);
     }
 
+    // --------------------------------------------------------
+    // Recipe → Network
+    // --------------------------------------------------------
     @Override
-    public void toNetwork(FriendlyByteBuf buffer, AlchemyRecipe recipe) {
-        recipe.getInput().toNetwork(buffer);
-        recipe.getCatalyst().toNetwork(buffer);
+    public void toNetwork(FriendlyByteBuf buf, AlchemyRecipe recipe) {
 
-        buffer.writeInt(recipe.getResults().size());
-        for (ItemStack result : recipe.getResults()) {
-            buffer.writeItem(result);
+        recipe.getInput().toNetwork(buf);
+
+        // Catalyst optionnelle → un bool + éventuellement l'Ingredient
+        boolean hasCatalyst = recipe.getCatalyst() != Ingredient.EMPTY
+                && recipe.getCatalyst().getItems().length > 0;
+
+        buf.writeBoolean(hasCatalyst);
+        if (hasCatalyst)
+            recipe.getCatalyst().toNetwork(buf);
+
+        buf.writeInt(recipe.getResults().size());
+        for (ItemStack out : recipe.getResults()) {
+            buf.writeItem(out);
         }
     }
 }

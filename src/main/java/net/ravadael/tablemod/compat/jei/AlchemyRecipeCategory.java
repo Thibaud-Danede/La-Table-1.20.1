@@ -2,15 +2,13 @@ package net.ravadael.tablemod.compat.jei;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.constants.VanillaTypes;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +26,10 @@ public class AlchemyRecipeCategory implements IRecipeCategory<AlchemyRecipe> {
     private final IDrawable icon;
 
     public AlchemyRecipeCategory(IGuiHelper gui) {
-        this.background = gui.createDrawable(TEXTURE, 0, 0, 94, 54);
+        // taille réduite : 94 x 54
+        this.background = gui.createDrawable(TEXTURE, 0, 0, 98, 54);
+
+        // icône = la table d'alchimie
         this.icon = gui.createDrawableIngredient(
                 VanillaTypes.ITEM_STACK,
                 new ItemStack(ModBlocks.ALCHEMY_TABLE.get())
@@ -58,15 +59,23 @@ public class AlchemyRecipeCategory implements IRecipeCategory<AlchemyRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, AlchemyRecipe recipe, IFocusGroup focuses) {
 
+        // -------------------------------
         // INPUT
+        // -------------------------------
         builder.addSlot(RecipeIngredientRole.INPUT, 11, 10)
                 .addIngredients(recipe.getInput());
 
-        // CATALYST
-        builder.addSlot(RecipeIngredientRole.CATALYST, 11, 29)
-                .addIngredients(recipe.getCatalyst());
+        // -------------------------------
+        // OPTIONAL CATALYST
+        // -------------------------------
+        if (!recipe.getCatalyst().isEmpty()) {
+            builder.addSlot(RecipeIngredientRole.CATALYST, 11, 29)
+                    .addIngredients(recipe.getCatalyst());
+        }
 
-        // OUTPUT — JEI SCROLL AUTOMATIQUEMENT !
+        // -------------------------------
+        // OUTPUT(S) — défilement JEI auto
+        // -------------------------------
         builder.addSlot(RecipeIngredientRole.OUTPUT, 72, 19)
                 .addItemStacks(recipe.getResults());
     }

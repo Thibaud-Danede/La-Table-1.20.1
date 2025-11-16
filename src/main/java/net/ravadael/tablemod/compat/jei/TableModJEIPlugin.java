@@ -58,12 +58,12 @@ public class TableModJEIPlugin implements IModPlugin {
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registry) {
-        // Permet de cliquer sur le bouton JEI dans ton GUI
+        /*// Permet de cliquer sur le bouton JEI dans ton GUI
         registry.addRecipeClickArea(
                 AlchemyTableScreen.class,
                 143, 33, 16, 16, // zone de ton output
                 ALCHEMY_TYPE
-        );
+        );*/
     }
 
     @Override
