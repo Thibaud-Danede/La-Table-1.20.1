@@ -12,6 +12,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.ravadael.tablemod.TableMod;
+import net.ravadael.tablemod.block.custom.AlchemyTableBlock;
 import net.ravadael.tablemod.item.ModItems;
 
 import java.util.function.Supplier;
@@ -21,8 +22,10 @@ public class ModBlocks {
             DeferredRegister.create(ForgeRegistries.BLOCKS, TableMod.MOD_ID);
 
     public static final RegistryObject<Block> ALCHEMY_TABLE = registerBlock("alchemy_table",
-            () -> new net.ravadael.tablemod.block.custom.AlchemyTableBlock(
-                    BlockBehaviour.Properties.copy(Blocks.CRIMSON_PLANKS).sound(SoundType.WOOD)
+            () -> new AlchemyTableBlock(
+                    BlockBehaviour.Properties.copy(Blocks.CRIMSON_PLANKS)
+                            .sound(SoundType.WOOD)
+                            .noOcclusion()        // <<< ESSENTIEL !
             ));
 
 
