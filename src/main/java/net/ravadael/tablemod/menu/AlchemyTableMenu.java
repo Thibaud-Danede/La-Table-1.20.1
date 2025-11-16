@@ -13,6 +13,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.ravadael.tablemod.block.entity.AlchemyTableBlockEntity;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
 import net.ravadael.tablemod.recipe.AlchemyRecipeType;
 
@@ -294,6 +295,25 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        this.access.execute((lvl, pos) -> this.clearContainer(player, this.input));
+
+        this.access.execute((lvl, pos) -> {
+            // --- Joue le son de fermeture ---
+            lvl.playSound(
+                    null,
+                    pos,
+                    SoundEvents.BOOK_PAGE_TURN,   // ⬅ change selon tes préférences
+                    net.minecraft.sounds.SoundSource.BLOCKS,
+                    1.0F,
+                    1.0F
+            );
+            // Récupère le BlockEntity
+            if (lvl.getBlockEntity(pos) instanceof AlchemyTableBlockEntity be) {
+                be.removeUser(player);   // 👉 indispensable
+            }
+
+            // Comportement vanilla : drop l’input si nécessaire
+            this.clearContainer(player, this.input);
+        });
     }
+
 }
