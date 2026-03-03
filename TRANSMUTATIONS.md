@@ -53,7 +53,9 @@ src/main/resources/data/tablemod/recipes/alchemy/
 │   └── walls.json
 └── wood/              # Bois
     ├── fence.json
-    └── planks.json
+    ├── logs.json
+    ├── planks.json
+    └── stripped_logs.json
 ```
 
 ---
@@ -93,7 +95,9 @@ src/main/resources/data/tablemod/recipes/alchemy/
 | Transmutation | Ingrédient (tag) | Résultats                            | Fichier                    |
 | ------------- | ---------------- | ------------------------------------ | -------------------------- |
 | **Barrières en bois** | `forge:fences` | Toutes les barrières en bois + nether brick | `alchemy/wood/fence.json` |
+| **Bois (bûches)** | `forge:logs` | Toutes les bûches et bois (logs, wood, stems, hyphae) | `alchemy/wood/logs.json` |
 | **Planches**  | `forge:planks`   | Toutes les planches (vanilla + mods) | `alchemy/wood/planks.json` |
+| **Bois écorcé** | `forge:stripped_logs` | Bûches et bois écorcés (stripped logs, stripped wood) | `alchemy/wood/stripped_logs.json` |
 
 
 ### Nature
@@ -175,6 +179,8 @@ src/main/resources/data/tablemod/recipes/alchemy/
 | Briques de pierre | `src/main/resources/data/tablemod/recipes/alchemy/stone/stone_bricks.json`      |
 | Murs (barrières)  | `src/main/resources/data/tablemod/recipes/alchemy/stone/walls.json`             |
 | Barrières en bois | `src/main/resources/data/tablemod/recipes/alchemy/wood/fence.json`              |
+| Bois (bûches)     | `src/main/resources/data/tablemod/recipes/alchemy/wood/logs.json`             |
+| Bois écorcé       | `src/main/resources/data/tablemod/recipes/alchemy/wood/stripped_logs.json`     |
 | Planches          | `src/main/resources/data/tablemod/recipes/alchemy/wood/planks.json`             |
 | Pousses           | `src/main/resources/data/tablemod/recipes/alchemy/nature/sapling.json`          |
 | Soul Sand/Soil    | `src/main/resources/data/tablemod/recipes/alchemy/nether/soul_soil.json`        |

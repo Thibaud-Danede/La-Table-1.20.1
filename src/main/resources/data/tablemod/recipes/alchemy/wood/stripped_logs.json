@@ -1,0 +1,6 @@
+{
+  "type": "tablemod:alchemy",
+  "ingredient": { "tag": "forge:stripped_logs" },
+  "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "results_tag": "forge:stripped_logs"
+}

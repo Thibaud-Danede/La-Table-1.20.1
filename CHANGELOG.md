@@ -14,7 +14,7 @@
 
 **Stone** : pierre (stone, granite, diorite, etc.), briques de pierre, murs
 
-**Wood** : planches, barrières en bois
+**Wood** : planches, barrières en bois, bois (bûches), bois écorcé
 
 **Nature** : pousses
 
@@ -22,8 +22,8 @@
 
 ## Données
 
-- Tags Forge créés/étendus : planks, wool, terracotta, stone, stone_bricks, glass, glass_panes, fences, walls, etc.
-- Tag `forge:walls` créé (non fourni par Forge)
+- Tags Forge créés/étendus : planks, wool, terracotta, stone, stone_bricks, glass, glass_panes, fences, walls, logs, stripped_logs, etc.
+- Tags créés (non fournis par Forge) : `forge:walls`, `forge:logs`, `forge:stripped_logs`
 
 ## Documentation
 
