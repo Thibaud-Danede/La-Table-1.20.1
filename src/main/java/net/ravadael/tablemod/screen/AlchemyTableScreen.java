@@ -150,7 +150,9 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
                 AlchemyRecipe recipe = menu.getRecipeForResult(stack);
                 if (recipe != null) {
                     tooltip.add(Component.empty());
-                    if (recipe.getCatalyst().isEmpty() || recipe.getCatalyst().getItems().length == 0) {
+                    if (!recipe.isCatalystRequired()) {
+                        tooltip.add(Component.translatable("gui.tablemod.catalyst_none").withStyle(ChatFormatting.GRAY));
+                    } else if (recipe.getCatalyst().isEmpty() || recipe.getCatalyst().getItems().length == 0) {
                         tooltip.add(Component.translatable("gui.tablemod.catalyst_none").withStyle(ChatFormatting.GRAY));
                     } else {
                         tooltip.add(Component.translatable("gui.tablemod.catalyst").withStyle(ChatFormatting.GRAY));

@@ -25,6 +25,7 @@ public class AlchemyRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Ingredient input;
     private final Ingredient catalyst;
+    private final boolean catalystRequired;
     private final List<ItemStack> results;
     /** Tag pour résultats (résolution paresseuse : les tags ne sont pas prêts pendant fromJson) */
     @javax.annotation.Nullable
@@ -34,14 +35,20 @@ public class AlchemyRecipe implements Recipe<Container> {
     private volatile List<ItemStack> resolvedResults;
 
     public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, List<ItemStack> results) {
-        this(id, input, catalyst, results, null);
+        this(id, input, catalyst, false, results, null);
     }
 
     public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, List<ItemStack> results,
                          @javax.annotation.Nullable ResourceLocation resultsTag) {
+        this(id, input, catalyst, false, results, resultsTag);
+    }
+
+    public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, boolean catalystRequired,
+                         List<ItemStack> results, @javax.annotation.Nullable ResourceLocation resultsTag) {
         this.id = id;
         this.input = input;
         this.catalyst = catalyst;
+        this.catalystRequired = catalystRequired;
         this.results = results != null ? results : List.of();
         this.resultsTag = resultsTag;
         this.resolvedResults = null;
@@ -55,6 +62,11 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     public Ingredient getCatalyst() {
         return catalyst;
+    }
+
+    /** true = catalyseur obligatoire, false = pas de catalyseur requis (défaut) */
+    public boolean isCatalystRequired() {
+        return catalystRequired;
     }
 
     /** Retourne les résultats. Si resultsTag est défini, résolution paresseuse (tags non prêts pendant fromJson). */
@@ -112,18 +124,12 @@ public class AlchemyRecipe implements Recipe<Container> {
             return false;
         }
 
-        // Si catalyst vide (recette sans catalyst)
-        if (catalyst == Ingredient.EMPTY || catalyst.getItems().length == 0) {
-
-            // Si le joueur met une catalyst alors que la recette n'en a pas → ne match PAS
-            if (!catalystStack.isEmpty()) {
-                return false;
-            }
-
-            return true; // OK, recette sans catalyst
+        // Pas de catalyseur requis (catalyst_required: false)
+        if (!catalystRequired) {
+            return true;
         }
 
-        // Recette AVEC catalyst → catalyst requise
+        // Catalyseur requis → vérifier qu'il matche
         return catalyst.test(catalystStack);
     }
 

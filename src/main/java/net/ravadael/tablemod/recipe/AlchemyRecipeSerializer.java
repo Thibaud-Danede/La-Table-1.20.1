@@ -32,6 +32,9 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
                         ? Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "catalyst"))
                         : Ingredient.EMPTY;
 
+        // catalyst_required : true = catalyseur obligatoire, false = pas besoin (défaut)
+        boolean catalystRequired = GsonHelper.getAsBoolean(json, "catalyst_required", false);
+
         // Results (liste explicite OU tag pour compatibilité mods)
         List<ItemStack> results = new ArrayList<>();
 
@@ -41,7 +44,7 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
             String tagId = GsonHelper.getAsString(json, "results_tag");
             ResourceLocation tagLoc = ResourceLocation.tryParse(tagId);
             if (tagLoc != null) {
-                return new AlchemyRecipe(recipeId, input, catalyst, List.of(), tagLoc);
+                return new AlchemyRecipe(recipeId, input, catalyst, catalystRequired, List.of(), tagLoc);
             }
             throw new JsonParseException("Invalid results_tag: " + tagId);
         }
@@ -62,7 +65,7 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
             throw new JsonParseException("Alchemy recipe must have 'result', 'results', or 'results_tag'");
         }
 
-        return new AlchemyRecipe(recipeId, input, catalyst, results);
+        return new AlchemyRecipe(recipeId, input, catalyst, catalystRequired, results, null);
     }
 
     // --------------------------------------------------------
@@ -73,9 +76,9 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
 
         Ingredient input = Ingredient.fromNetwork(buf);
 
-        // Catalyst optionnelle : on lit un boolean pour savoir si une catalyst existe
         boolean hasCatalyst = buf.readBoolean();
         Ingredient catalyst = hasCatalyst ? Ingredient.fromNetwork(buf) : Ingredient.EMPTY;
+        boolean catalystRequired = buf.readBoolean();
 
         int count = buf.readInt();
         List<ItemStack> results = new ArrayList<>();
@@ -84,7 +87,7 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
             results.add(buf.readItem());
         }
 
-        return new AlchemyRecipe(recipeId, input, catalyst, results);
+        return new AlchemyRecipe(recipeId, input, catalyst, catalystRequired, results, null);
     }
 
     // --------------------------------------------------------
@@ -102,6 +105,7 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
         buf.writeBoolean(hasCatalyst);
         if (hasCatalyst)
             recipe.getCatalyst().toNetwork(buf);
+        buf.writeBoolean(recipe.isCatalystRequired());
 
         buf.writeInt(recipe.getResults().size());
         for (ItemStack out : recipe.getResults()) {

@@ -2,5 +2,6 @@
   "type": "tablemod:alchemy",
   "ingredient": { "tag": "forge:stone_bricks" },
   "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "catalyst_required": false,
   "results_tag": "forge:stone_bricks"
 }

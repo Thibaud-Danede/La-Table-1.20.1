@@ -66,9 +66,9 @@ public class AlchemyRecipeCategory implements IRecipeCategory<AlchemyRecipe> {
                 .addIngredients(recipe.getInput());
 
         // -------------------------------
-        // OPTIONAL CATALYST
+        // OPTIONAL CATALYST (si requis)
         // -------------------------------
-        if (!recipe.getCatalyst().isEmpty()) {
+        if (recipe.isCatalystRequired() && !recipe.getCatalyst().isEmpty()) {
             builder.addSlot(RecipeIngredientRole.CATALYST, 11, 29)
                     .addIngredients(recipe.getCatalyst());
         }

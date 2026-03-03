@@ -139,6 +139,7 @@ src/main/resources/data/tablemod/recipes/alchemy/
   "type": "tablemod:alchemy",
   "ingredient": { "tag": "forge:nom_du_tag" },
   "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "catalyst_required": true,
   "results_tag": "forge:nom_du_tag"
 }
 ```
@@ -150,12 +151,15 @@ src/main/resources/data/tablemod/recipes/alchemy/
   "type": "tablemod:alchemy",
   "ingredient": { "tag": "tablemod:mon_tag" },
   "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "catalyst_required": true,
   "results": [
     { "item": "minecraft:item_1" },
     { "item": "minecraft:item_2" }
   ]
 }
 ```
+
+**`catalyst_required`** : `true` = catalyseur obligatoire, `false` = pas besoin (défaut si absent)
 
 ---
 

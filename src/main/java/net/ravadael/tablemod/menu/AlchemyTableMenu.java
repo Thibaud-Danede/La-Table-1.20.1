@@ -80,7 +80,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
 
                 // Consume catalyst ONLY IF RECIPE REQUIRES ONE
                 AlchemyRecipe recipe = recipes.isEmpty() ? null : recipes.get(0);
-                if (recipe != null && !recipe.getCatalyst().isEmpty()) {
+                if (recipe != null && recipe.isCatalystRequired()) {
                     ItemStack cat = input.getItem(1);
                     cat.shrink(1);
                     if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
@@ -223,7 +223,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
             int maxCrafts = inp.getCount();
 
             // Si catalyst obligatoire
-            if (!recipes.isEmpty() && !recipes.get(0).getCatalyst().isEmpty()) {
+            if (!recipes.isEmpty() && recipes.get(0).isCatalystRequired()) {
                 maxCrafts = Math.min(maxCrafts, cat.getCount());
             }
 
@@ -241,7 +241,7 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
                 if (inp.isEmpty()) input.setItem(0, ItemStack.EMPTY);
 
                 // Consume catalyst if needed
-                if (!recipes.isEmpty() && !recipes.get(0).getCatalyst().isEmpty()) {
+                if (!recipes.isEmpty() && recipes.get(0).isCatalystRequired()) {
                     cat.shrink(1);
                     if (cat.isEmpty()) input.setItem(1, ItemStack.EMPTY);
                 }

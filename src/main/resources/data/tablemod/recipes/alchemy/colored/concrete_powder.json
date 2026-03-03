@@ -2,6 +2,7 @@
   "type": "tablemod:alchemy",
   "ingredient": { "tag": "tablemod:concrete_powder" },
   "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "catalyst_required": true,
   "results": [
     { "item": "minecraft:white_concrete_powder" },
     { "item": "minecraft:orange_concrete_powder" },
