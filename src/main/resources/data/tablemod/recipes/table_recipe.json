@@ -10,7 +10,7 @@
     "L": { "item": "minecraft:book" },
     "B": { "item": "tablemod:flask" },
     "A": { "item": "minecraft:amethyst_shard" },
-    "C": { "tag": "minecraft:planks" }
+    "C": { "tag": "forge:planks" }
   },
   "result": { "item": "tablemod:alchemy_table", "count": 1 }
 }

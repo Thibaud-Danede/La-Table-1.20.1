@@ -1,15 +1,23 @@
 package net.ravadael.tablemod.recipe;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AlchemyRecipe implements Recipe<Container> {
@@ -17,13 +25,26 @@ public class AlchemyRecipe implements Recipe<Container> {
     private final ResourceLocation id;
     private final Ingredient input;
     private final Ingredient catalyst;
-    private final List<ItemStack> results; // <<<<<< NEW
+    private final List<ItemStack> results;
+    /** Tag pour résultats (résolution paresseuse : les tags ne sont pas prêts pendant fromJson) */
+    @javax.annotation.Nullable
+    private final ResourceLocation resultsTag;
+
+    /** Cache des résultats résolus depuis le tag (après chargement complet) */
+    private volatile List<ItemStack> resolvedResults;
 
     public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, List<ItemStack> results) {
+        this(id, input, catalyst, results, null);
+    }
+
+    public AlchemyRecipe(ResourceLocation id, Ingredient input, Ingredient catalyst, List<ItemStack> results,
+                         @javax.annotation.Nullable ResourceLocation resultsTag) {
         this.id = id;
         this.input = input;
         this.catalyst = catalyst;
-        this.results = results;
+        this.results = results != null ? results : List.of();
+        this.resultsTag = resultsTag;
+        this.resolvedResults = null;
     }
 
     // === Getters used by your menu ===
@@ -36,11 +57,50 @@ public class AlchemyRecipe implements Recipe<Container> {
         return catalyst;
     }
 
-    public List<ItemStack> getResults() {       // <<<<<< NEW
+    /** Retourne les résultats. Si resultsTag est défini, résolution paresseuse (tags non prêts pendant fromJson). */
+    public List<ItemStack> getResults() {
+        if (resultsTag != null) {
+            if (resolvedResults == null) {
+                resolvedResults = resolveResultsFromTag();
+            }
+            return resolvedResults != null ? resolvedResults : List.of();
+        }
         return results;
     }
 
+    /** Résout le tag après chargement complet (évite "Empty Tag" pendant la désérialisation) */
+    private List<ItemStack> resolveResultsFromTag() {
+        RegistryAccess ra = getRegistryAccess();
+        if (ra == null) return List.of();
+
+        var registry = ra.registry(Registries.ITEM);
+        if (registry.isEmpty()) return List.of();
+
+        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, resultsTag);
+        List<ItemStack> list = new ArrayList<>();
+        for (var holder : registry.get().getTagOrEmpty(tagKey)) {
+            list.add(new ItemStack(holder.value()));
+        }
+        return Collections.unmodifiableList(list);
+    }
+
+    /** Obtient RegistryAccess (serveur ou client) */
+    @javax.annotation.Nullable
+    private static RegistryAccess getRegistryAccess() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            var mc = net.minecraft.client.Minecraft.getInstance();
+            if (mc.level != null) return mc.level.registryAccess();
+        }
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server != null ? server.registryAccess() : null;
+    }
+
     // === Vanilla-required methods ===
+
+    /** Vérifie si l'input seul matche (pour afficher les recettes possibles même sans catalyseur) */
+    public boolean matchesInputOnly(Container container) {
+        return input.test(container.getItem(0));
+    }
 
     @Override
     public boolean matches(Container container, Level level) {
@@ -79,7 +139,8 @@ public class AlchemyRecipe implements Recipe<Container> {
 
     @Override
     public ItemStack getResultItem(RegistryAccess registryAccess) {
-        return results.isEmpty() ? ItemStack.EMPTY : results.get(0);
+        List<ItemStack> list = getResults();
+        return list.isEmpty() ? ItemStack.EMPTY : list.get(0);
     }
 
     @Override
@@ -103,20 +164,21 @@ public class AlchemyRecipe implements Recipe<Container> {
     }
 
     public List<ItemStack> getFilteredResults(ItemStack input) {
-        if (input.isEmpty()) return results;
+        List<ItemStack> list = getResults();
+        if (input.isEmpty()) return list;
 
         // Si l'input n'est pas dans les résultats, renvoie la liste intacte (zéro allocation)
         boolean contains = false;
-        for (ItemStack r : results) {
+        for (ItemStack r : list) {
             if (ItemStack.isSameItemSameTags(r, input)) {
                 contains = true;
                 break;
             }
         }
-        if (!contains) return results;
+        if (!contains) return list;
 
         // Sinon construire une liste filtrée
-        return results.stream()
+        return list.stream()
                 .filter(r -> !ItemStack.isSameItemSameTags(r, input))
                 .toList();
     }

@@ -23,3 +23,6 @@ run
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# Agent context (usage interne, non versionné)
+.agent-context.md

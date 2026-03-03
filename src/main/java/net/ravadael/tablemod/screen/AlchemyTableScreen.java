@@ -1,5 +1,6 @@
 package net.ravadael.tablemod.screen;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -7,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.ravadael.tablemod.menu.AlchemyTableMenu;
 import net.ravadael.tablemod.network.ModMessages;
 import net.ravadael.tablemod.recipe.AlchemyRecipe;
@@ -140,8 +142,25 @@ public class AlchemyTableScreen extends AbstractContainerScreen<AlchemyTableMenu
             ItemStack stack = results.get(idx);
             gfx.renderItem(stack, x, y + 1);
 
-            if (hovered)
-                gfx.renderTooltip(font, stack, mouseX, mouseY);
+            if (hovered) {
+                List<Component> tooltip = new ArrayList<>(stack.getTooltipLines(
+                        minecraft.player,
+                        TooltipFlag.NORMAL
+                ));
+                AlchemyRecipe recipe = menu.getRecipeForResult(stack);
+                if (recipe != null) {
+                    tooltip.add(Component.empty());
+                    if (recipe.getCatalyst().isEmpty() || recipe.getCatalyst().getItems().length == 0) {
+                        tooltip.add(Component.translatable("gui.tablemod.catalyst_none").withStyle(ChatFormatting.GRAY));
+                    } else {
+                        tooltip.add(Component.translatable("gui.tablemod.catalyst").withStyle(ChatFormatting.GRAY));
+                        for (ItemStack cat : recipe.getCatalyst().getItems()) {
+                            tooltip.add(Component.literal(" • ").append(cat.getHoverName()).withStyle(ChatFormatting.DARK_GRAY));
+                        }
+                    }
+                }
+                gfx.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+            }
         }
     }
 

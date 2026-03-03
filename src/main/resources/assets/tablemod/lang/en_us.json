@@ -7,5 +7,8 @@
 
   "container.tablemod.alchemy": "Alchemy Table",
 
-  "jei.tablemod.alchemy": "Alchemy process"
+  "jei.tablemod.alchemy": "Alchemy process",
+
+  "gui.tablemod.catalyst": "Catalyst required:",
+  "gui.tablemod.catalyst_none": "No catalyst required"
 }

@@ -1,0 +1,6 @@
+{
+  "type": "tablemod:alchemy",
+  "ingredient": { "tag": "forge:saplings" },
+  "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "results_tag": "forge:saplings"
+}

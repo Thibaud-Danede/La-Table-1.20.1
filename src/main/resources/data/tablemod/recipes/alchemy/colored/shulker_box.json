@@ -1,0 +1,6 @@
+{
+  "type": "tablemod:alchemy",
+  "ingredient": { "tag": "forge:shulker_boxes" },
+  "catalyst": { "tag": "tablemod:alchemy_catalyst" },
+  "results_tag": "forge:shulker_boxes"
+}

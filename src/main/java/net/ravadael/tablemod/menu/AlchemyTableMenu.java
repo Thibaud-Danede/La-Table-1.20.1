@@ -139,8 +139,9 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         List<AlchemyRecipe> all = level.getRecipeManager().getAllRecipesFor(AlchemyRecipeType.INSTANCE);
         List<AlchemyRecipe> valid = new ArrayList<>();
 
+        // Afficher les recettes dès que l'input matche (même sans catalyseur)
         for (AlchemyRecipe r : all)
-            if (r.matches(input, level))
+            if (r.matchesInputOnly(input))
                 valid.add(r);
 
         valid.sort(Comparator.comparing(r ->
@@ -171,7 +172,12 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
         for (AlchemyRecipe r : recipes) {
             for (ItemStack out : r.getFilteredResults(inp)) {
                 if (ItemStack.isSameItemSameTags(out, selectedOutput)) {
-                    result.setItem(0, out.copy());
+                    // N'afficher le résultat que si la recette complète matche (input + catalyseur)
+                    if (r.matches(input, level)) {
+                        result.setItem(0, out.copy());
+                    } else {
+                        result.setItem(0, ItemStack.EMPTY);
+                    }
                     broadcastChanges();
                     return;
                 }
@@ -291,6 +297,19 @@ public class AlchemyTableMenu extends AbstractContainerMenu {
     }
 
     public List<AlchemyRecipe> getCurrentRecipes() { return recipes; }
+
+    /** Retourne la recette qui produit ce résultat (pour afficher le catalyseur dans le tooltip) */
+    public AlchemyRecipe getRecipeForResult(ItemStack result) {
+        ItemStack inp = input.getItem(0);
+        if (inp.isEmpty()) return null;
+        for (AlchemyRecipe r : recipes) {
+            for (ItemStack out : r.getFilteredResults(inp)) {
+                if (ItemStack.isSameItemSameTags(out, result))
+                    return r;
+            }
+        }
+        return null;
+    }
 
     @Override
     public void removed(Player player) {

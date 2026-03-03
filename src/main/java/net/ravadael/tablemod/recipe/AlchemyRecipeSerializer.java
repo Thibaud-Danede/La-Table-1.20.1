@@ -32,10 +32,20 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
                         ? Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "catalyst"))
                         : Ingredient.EMPTY;
 
-        // Results
+        // Results (liste explicite OU tag pour compatibilité mods)
         List<ItemStack> results = new ArrayList<>();
 
-        if (json.has("results")) {
+        if (json.has("results_tag")) {
+            // Compatibilité mods : NE PAS résoudre ici — les tags ne sont pas prêts pendant fromJson.
+            // La résolution se fait à la première utilisation (voir AlchemyRecipe.getResults).
+            String tagId = GsonHelper.getAsString(json, "results_tag");
+            ResourceLocation tagLoc = ResourceLocation.tryParse(tagId);
+            if (tagLoc != null) {
+                return new AlchemyRecipe(recipeId, input, catalyst, List.of(), tagLoc);
+            }
+            throw new JsonParseException("Invalid results_tag: " + tagId);
+        }
+        else if (json.has("results")) {
             JsonArray arr = GsonHelper.getAsJsonArray(json, "results");
             for (JsonElement e : arr) {
                 results.add(
@@ -49,7 +59,7 @@ public class AlchemyRecipeSerializer implements RecipeSerializer<AlchemyRecipe> 
             );
         }
         else {
-            throw new JsonParseException("Alchemy recipe must have either 'result' or 'results'");
+            throw new JsonParseException("Alchemy recipe must have 'result', 'results', or 'results_tag'");
         }
 
         return new AlchemyRecipe(recipeId, input, catalyst, results);
